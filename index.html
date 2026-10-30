@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>廣告文案 A/B 測試預測推算器</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;600;700;900&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans TC', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #ece9e4;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c8c2bc;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a9a29a;
+    }
+  </style>
+</head>
+<body class="bg-[#f4f1ea] text-[#3d3a37] min-h-screen py-8 px-4 sm:px-6 lg:px-8 relative selection:bg-[#d8cfc4] selection:text-[#2c2825]">
+
+  <!-- Toast 提示訊息容器 (取代原生 alert) -->
+  <div id="toast" class="fixed top-5 right-5 z-[100] transform transition-all duration-300 -translate-y-28 opacity-0 pointer-events-none flex items-center gap-2.5 px-4 py-3 bg-[#faf8f5] border border-[#d5cec5] text-[#3d3a37] shadow-lg rounded-md text-sm font-medium">
+    <i id="toastIcon" class="ph-fill ph-check-circle text-[#728c79] text-lg"></i>
+    <span id="toastMsg">操作已完成</span>
+  </div>
+
+  <!-- 自訂確認對話方塊 (取代原生 confirm) -->
+  <div id="confirmModal" class="fixed inset-0 z-[110] bg-[#2d2a27]/40 backdrop-blur-xs hidden flex items-center justify-center p-4">
+    <div class="bg-[#faf8f5] rounded-md border border-[#d5cec5] p-6 max-w-sm w-full shadow-xl space-y-4">
+      <div class="w-10 h-10 rounded-md bg-[#f2e6e3] text-[#a45e54] flex items-center justify-center mx-auto text-xl">
+        <i class="ph-bold ph-trash"></i>
+      </div>
+      <div class="text-center">
+        <h3 class="text-base font-bold text-[#2d2a27]" id="confirmTitle">確認清空</h3>
+        <p class="text-xs text-[#706b65] mt-1" id="confirmDesc">確定要刪除所有歷史記錄嗎？此操作將無法復原。</p>
+      </div>
+      <div class="flex items-center gap-3 pt-2">
+        <button type="button" onclick="closeConfirmModal(false)" class="flex-1 py-2 text-xs font-semibold text-[#5a544e] bg-[#ebe6df] hover:bg-[#ded7ce] rounded-md transition">取消</button>
+        <button type="button" onclick="closeConfirmModal(true)" class="flex-1 py-2 text-xs font-semibold text-white bg-[#a45e54] hover:bg-[#8e4f46] rounded-md transition shadow-xs">確認清空</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto space-y-6">
+    
+    <!-- 頂部標題與工具列 -->
+    <header class="bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-6 shadow-xs flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-[#ede9e3] border border-[#d5cec5] text-[#6b6257] rounded-md text-xs font-semibold mb-2">
+          <i class="ph-bold ph-chart-polar text-[#847869]"></i>
+          文案語意與受眾心理演算法模型 v2.0
+        </div>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#2d2a27] flex items-center gap-2">
+          廣告文案 A/B 測試預測評估器
+        </h1>
+        <p class="text-[#706b65] text-sm mt-1">
+          免盲目手動推測；系統透過「吸睛鉤子、痛點切身、認知阻力、好奇缺口、行動門檻」推算相對預期 CTR 與轉換勝率。
+        </p>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+        <button type="button" onclick="toggleHistoryDrawer()" class="px-3.5 py-2.5 bg-[#697a82] hover:bg-[#5b6a71] active:bg-[#4f5c63] text-xs font-bold rounded-md text-white transition flex items-center gap-2 shadow-xs">
+          <i class="ph-bold ph-clock-counter-clockwise text-sm"></i>
+          歷史紀錄 (<span id="historyCountBadge">0</span>)
+        </button>
+        <div class="relative inline-block text-left" id="presetDropdownContainer">
+          <button type="button" onclick="togglePresetMenu()" class="px-3 py-2.5 bg-[#ede8e1] hover:bg-[#e2dbd1] active:bg-[#d6cdbf] text-xs font-medium rounded-md text-[#534d46] transition flex items-center gap-1.5 border border-[#d5cec5]">
+            <i class="ph ph-sparkle text-[#847869]"></i> 載入範例
+            <i class="ph ph-caret-down text-[10px]"></i>
+          </button>
+          <div id="presetMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-md bg-[#faf8f5] border border-[#d5cec5] py-1.5 z-30 text-xs">
+            <button type="button" onclick="loadPreset('budget')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
+              <i class="ph ph-wallet text-[#a88a6d]"></i> 小資理財 App
+            </button>
+            <button type="button" onclick="loadPreset('b2b')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
+              <i class="ph ph-briefcase text-[#6b7f8c]"></i> B2B 團隊專案工具
+            </button>
+            <button type="button" onclick="loadPreset('skincare')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
+              <i class="ph ph-flower-lotus text-[#ab7d82]"></i> 熬夜修護保養精華
+            </button>
+          </div>
+        </div>
+
+        <button type="button" onclick="clearAll()" class="px-3 py-2.5 bg-[#ede8e1] hover:bg-[#f2e6e3] text-xs font-medium rounded-md text-[#706b65] hover:text-[#a45e54] transition border border-[#d5cec5]" title="清空全部輸入">
+          <i class="ph ph-arrows-counter-clockwise"></i> 清空
+        </button>
+      </div>
+    </header>
+
+    <!-- 廣告情境配置 -->
+    <section class="bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-5 shadow-xs grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-xs font-semibold text-[#5a544e] mb-1.5 flex items-center gap-1">
+          <i class="ph-bold ph-device-mobile-camera text-[#6b7f8c]"></i> 投放目標平台
+        </label>
+        <select id="platformSelect" onchange="runAnalysis(false, false)" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium">
+          <option value="meta_feed">Meta 資訊流 (FB / IG 貼文)</option>
+          <option value="ig_story">IG 限時動態 / Reels 短影音</option>
+          <option value="threads">Threads 脆文社群廣告</option>
+          <option value="google_search">Google 關鍵字搜尋廣告</option>
+          <option value="line_voom">LINE 官方帳號 / VOOM 訊息</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-[#5a544e] mb-1.5 flex items-center gap-1">
+          <i class="ph-bold ph-users text-[#6b7f8c]"></i> 目標受眾屬性 (TA)
+        </label>
+        <select id="audienceSelect" onchange="runAnalysis(false, false)" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium">
+          <option value="young">年輕學生 / 20-25 歲小資租屋族</option>
+          <option value="career">忙碌上班族 / 職場白領主管</option>
+          <option value="parent">家庭育兒 / 精打細算採購者</option>
+          <option value="tech">工程師 / 產品經理 / 科技專業人士</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-[#5a544e] mb-1.5 flex items-center gap-1">
+          <i class="ph-bold ph-target text-[#6b7f8c]"></i> 廣告行銷主目標
+        </label>
+        <select id="goalSelect" onchange="runAnalysis(false, false)" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium">
+          <option value="ctr">最大化點擊/瀏覽率 (High CTR)</option>
+          <option value="lead">名單註冊/白皮書索取 (Lead Magnet)</option>
+          <option value="purchase">直接下單購買/轉換 (Direct Purchase)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- A/B 測試模式切換列 (單一變因控制) -->
+    <div class="bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-6 h-6 rounded-md bg-[#ede8e1] text-[#697a82] flex items-center justify-center text-xs font-bold shrink-0">
+          <i class="ph-bold ph-sliders-horizontal"></i>
+        </span>
+        <div>
+          <span class="text-xs font-bold text-[#2d2a27]">嚴格 A/B 測試單一變因控制</span>
+          <span class="text-[11px] text-[#706b65] block sm:inline sm:ml-2" id="modeDescriptionText">【模式 1】鎖定圖片完全相同，專注驗證文案 A vs B 的受眾共鳴與點擊率差異。</span>
+        </div>
+      </div>
+      <div class="flex items-center bg-[#ede8e1] p-1 rounded-md border border-[#d5cec5] gap-1 shrink-0">
+        <button type="button" id="modeBtn_copy" onclick="setTestMode('copy_diff')" class="px-3 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs">
+          <i class="ph-bold ph-text-aa text-[#6b7f8c]"></i> 1. 文案不同 · 圖片相同
+        </button>
+        <button type="button" id="modeBtn_image" onclick="setTestMode('image_diff')" class="px-3 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5">
+          <i class="ph-bold ph-image text-[#a8825c]"></i> 2. 圖片不同 · 文案相同
+        </button>
+      </div>
+    </div>
+
+    <!-- 文案輸入區塊 (並排) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <!-- 對照組 • 文案 A (莫蘭迪灰霧藍調) -->
+      <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-5 shadow-xs flex flex-col justify-between relative group hover:border-[#98aab4] transition">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#edf2f5] text-[#556975] border border-[#cbd5dc] rounded-md text-xs font-bold tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 對照組 • 文案 A
+            </span>
+            <span id="charCountA" class="text-xs font-medium text-[#8c857d]">0 字</span>
+          </div>
+
+          <!-- 廣告圖片上傳與辨識區域 A -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c] flex items-center gap-1">
+                <i class="ph-bold ph-image text-[#6b7f8c]"></i> 主視覺圖片上傳 (選填)
+                <span id="imgLockBadgeA" class="text-[10px] text-[#556975] bg-[#e3ebf0] px-1.5 py-0.5 rounded-xs font-normal">共用主圖</span>
+              </label>
+              <button type="button" id="removeImgBtnA" onclick="clearImage('A')" class="text-[10px] text-[#a45e54] hover:underline hidden">移除圖片</button>
+            </div>
+            
+            <div id="dropzoneA" onclick="document.getElementById('fileInputA').click()" class="border border-dashed border-[#c5cdd3] hover:border-[#8397a4] bg-[#f5f8fa]/60 hover:bg-[#edf2f5]/50 rounded-md p-3 text-center cursor-pointer transition relative group overflow-hidden">
+              <input type="file" id="fileInputA" accept="image/*" class="hidden" onchange="handleImageUpload('A', event)">
+              
+              <div id="uploadPromptA" class="py-3 flex flex-col items-center justify-center gap-1">
+                <i class="ph-duotone ph-cloud-arrow-up text-2xl text-[#6b7f8c]"></i>
+                <span class="text-xs font-semibold text-[#45413c]">點擊或拖曳上傳素材 A</span>
+                <span class="text-[10px] text-[#8c857d]">支援 JPG、PNG、WebP (將自動辨識視覺吸睛力)</span>
+              </div>
+
+              <!-- 圖片預覽與辨識標籤 -->
+              <div id="imgPreviewWrapperA" class="hidden relative">
+                <img id="imgPreviewA" class="w-full h-36 object-cover rounded-md border border-[#cbd5dc]" alt="素材 A 預覽">
+                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-2.5 py-1.5 rounded-md text-[10px] flex items-center justify-between">
+                  <span id="imgMetricsTagA" class="flex items-center gap-1 font-mono">
+                    <i class="ph-bold ph-sparkle text-[#d9c4aa]"></i> 分析中...
+                  </span>
+                  <span class="text-[#c7bfb5]">點擊更換</span>
+                </div>
+              </div>
+            </div>
+            <canvas id="canvasA" class="hidden"></canvas>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
+              <span class="text-[10px] text-[#8c857d]">建議 15~35 字為佳</span>
+            </div>
+            <input type="text" id="titleA" placeholder="例：全方位智能記帳工具，讓你輕鬆掌握每筆開銷！" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="onCopyAInput()">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
+              <span class="text-[10px] text-[#8c857d]">超過 120 字將面臨折疊</span>
+            </div>
+            <textarea id="bodyA" rows="4" placeholder="輸入文案詳細描述、產品特色與切身場景..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition resize-none leading-relaxed" oninput="onCopyAInput()"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
+            <input type="text" id="ctaA" placeholder="例：立即註冊體驗" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="onCopyAInput()">
+          </div>
+        </div>
+
+        <!-- 快速預覽膠囊 -->
+        <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+          <span>對照基準版本</span>
+          <button type="button" onclick="previewMockup('A')" class="text-[#556975] hover:text-[#384852] font-semibold flex items-center gap-1">
+            <i class="ph ph-eye"></i> 手機樣機預覽
+          </button>
+        </div>
+      </div>
+
+      <!-- 實驗組 • 文案 B (莫蘭迪陶土杏褐調) -->
+      <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-5 shadow-xs flex flex-col justify-between relative group hover:border-[#bda892] transition">
+        <div class="space-y-4">
+          <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f7efe4] text-[#846648] border border-[#ded0c0] rounded-md text-xs font-bold tracking-wider">
+              <span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 實驗組 • 文案 B
+            </span>
+            <span id="charCountB" class="text-xs font-medium text-[#8c857d]">0 字</span>
+          </div>
+
+          <!-- 廣告圖片上傳與辨識區域 B -->
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c] flex items-center gap-1">
+                <i class="ph-bold ph-image text-[#a8825c]"></i> 主視覺圖片上傳 (選填)
+                <span id="imgLockBadgeB" class="text-[10px] text-[#697a82] bg-[#ede8e1] px-1.5 py-0.5 rounded-xs font-normal">已自動同步素材 A</span>
+              </label>
+              <button type="button" id="removeImgBtnB" onclick="clearImage('B')" class="text-[10px] text-[#a45e54] hover:underline hidden">移除圖片</button>
+            </div>
+            
+            <div id="dropzoneB" onclick="triggerDropzoneB()" class="border border-dashed border-[#dfd2c4] hover:border-[#a8825c] bg-[#faf5ee]/60 hover:bg-[#f7efe4]/50 rounded-md p-3 text-center cursor-pointer transition relative group overflow-hidden">
+              <input type="file" id="fileInputB" accept="image/*" class="hidden" onchange="handleImageUpload('B', event)">
+              
+              <div id="uploadPromptB" class="py-3 flex flex-col items-center justify-center gap-1">
+                <i class="ph-duotone ph-cloud-arrow-up text-2xl text-[#a8825c]"></i>
+                <span class="text-xs font-semibold text-[#45413c]">點擊或拖曳上傳素材 B</span>
+                <span class="text-[10px] text-[#8c857d]">支援 JPG、PNG、WebP (將自動辨識視覺吸睛力)</span>
+              </div>
+
+              <!-- 圖片預覽與辨識標籤 -->
+              <div id="imgPreviewWrapperB" class="hidden relative">
+                <img id="imgPreviewB" class="w-full h-36 object-cover rounded-md border border-[#ded0c0]" alt="素材 B 預覽">
+                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-2.5 py-1.5 rounded-md text-[10px] flex items-center justify-between">
+                  <span id="imgMetricsTagB" class="flex items-center gap-1 font-mono">
+                    <i class="ph-bold ph-sparkle text-[#d9c4aa]"></i> 分析中...
+                  </span>
+                  <span class="text-[#c7bfb5]" id="imgChangeTagB">點擊更換</span>
+                </div>
+              </div>
+            </div>
+            <canvas id="canvasB" class="hidden"></canvas>
+          </div>
+
+          <!-- B 文案同調提示 (僅在模式二顯示) -->
+          <div id="copySyncNoticeB" class="hidden p-2.5 bg-[#ede8e1] border border-[#d5cec5] rounded-md text-[11px] text-[#5a544e] flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i class="ph-bold ph-link text-[#697a82]"></i> 已鎖定與文案 A 相同 (單純比對兩張圖片差異)
+            </span>
+            <button type="button" onclick="syncCopyAToB(true)" class="text-[10px] font-bold text-[#697a82] hover:underline">強制重整同調</button>
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
+              <span class="text-[10px] text-[#8c857d]">創造反差或疑問</span>
+            </div>
+            <input type="text" id="titleB" placeholder="例：「明明沒買奢侈品，月底戶頭怎麼又空了？」" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
+          </div>
+
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
+              <span class="text-[10px] text-[#8c857d]">多用「你」、具體數字</span>
+            </div>
+            <textarea id="bodyB" rows="4" placeholder="輸入文案 B 詳細描述，直擊心理盲區與具體解答..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition resize-none leading-relaxed" oninput="updateCharCount()"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
+            <input type="text" id="ctaB" placeholder="例：免費領取省錢健檢工具 ➜" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
+          </div>
+        </div>
+
+        <!-- 快速預覽膠囊 -->
+        <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+          <span>心理學假設優化版</span>
+          <button type="button" onclick="previewMockup('B')" class="text-[#846648] hover:text-[#5f462e] font-semibold flex items-center gap-1">
+            <i class="ph ph-eye"></i> 手機樣機預覽
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 運算主按鈕 -->
+    <div class="text-center flex flex-col sm:flex-row justify-center items-center gap-4 pt-2">
+      <button type="button" onclick="runAnalysis(true, true)" class="w-full sm:w-auto px-9 py-3 bg-[#5f7178] hover:bg-[#506067] active:bg-[#435258] text-white font-bold rounded-md shadow-xs transition transform active:scale-[0.99] inline-flex items-center justify-center gap-2 text-sm cursor-pointer tracking-wide">
+        <i class="ph-bold ph-lightning text-base text-[#edd6b8]"></i> 立即執行模型推算並記錄
+      </button>
+      <button type="button" onclick="copyComparisonSummary()" id="copySummaryBtn" class="hidden w-full sm:w-auto px-5 py-3 bg-[#faf8f5] border border-[#d5cec5] hover:bg-[#ede8e1] text-[#534d46] font-semibold rounded-md text-sm transition flex items-center justify-center gap-2 shadow-xs">
+        <i class="ph ph-copy text-[#6b7f8c] text-base"></i> 複製診斷報告摘要
+      </button>
+    </div>
+
+    <!-- 推算分析結果展示區 (動態更新) -->
+    <div id="resultsCard" class="hidden space-y-6 pt-2">
+      
+      <!-- 勝出預測 Hero 區塊 -->
+      <div id="winnerBanner" class="p-6 md:p-7 rounded-md border transition-all duration-300 shadow-xs">
+        <!-- 內容由 JS 產生 -->
+      </div>
+
+      <!-- 行銷圖片吸睛度專屬比對卡片 (有上傳圖片時顯示) -->
+      <div id="imageAnalysisSection" class="hidden bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-6 md:p-7 shadow-xs">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ede8eb] text-[#786169] border border-[#d9d0d4] rounded-md text-xs font-bold mb-2">
+              <i class="ph-bold ph-magic-wand text-[#786169]"></i>
+              電腦視覺神經與視覺注意力模型分析
+            </div>
+            <h3 class="text-lg font-bold text-[#2d2a27] flex items-center gap-2">
+              廣告素材圖片：消費者吸睛度深度剖析與推薦
+            </h3>
+            <p class="text-xs text-[#706b65] mt-0.5">針對指尖滾動停頓力 (Thumb-stopping Power)、主體焦點對比度及色彩心理穿透力進行像素級計算</p>
+          </div>
+          <div id="imageWinnerBadge" class="px-3.5 py-1.5 bg-[#edf2ee] text-[#4d6653] border border-[#cad6cd] rounded-md text-xs font-bold shadow-xs">
+            分析中...
+          </div>
+        </div>
+
+        <!-- 兩圖吸睛力對決卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="imageComparisonGrid">
+          <!-- 圖片 A 評估面板 -->
+          <div class="p-5 bg-[#f4f1ea]/80 rounded-md border border-[#dcd6cd] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#556975] flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 素材 A 視覺指標
+              </span>
+              <span id="imgScoreA" class="text-xs font-mono font-bold bg-[#e3ebf0] text-[#455864] px-2.5 py-0.5 rounded-md">0 分</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <img id="imgThumbA" class="w-20 h-20 object-cover rounded-md border border-[#dcd6cd] shrink-0 bg-[#faf8f5]" alt="素材 A">
+              <div class="space-y-1 text-xs text-[#5a544e] flex-1" id="imgStatsA">
+                <div>色彩飽和度：<span class="font-bold text-[#2d2a27]">--</span></div>
+                <div>主體明暗對比：<span class="font-bold text-[#2d2a27]">--</span></div>
+                <div>視覺留白感：<span class="font-bold text-[#2d2a27]">--</span></div>
+              </div>
+            </div>
+            <p id="imgAdviceA" class="text-xs text-[#5a544e] bg-[#faf8f5] p-3 rounded-md border border-[#dcd6cd] leading-relaxed"></p>
+          </div>
+
+          <!-- 圖片 B 評估面板 -->
+          <div class="p-5 bg-[#f4f1ea]/80 rounded-md border border-[#dcd6cd] space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#846648] flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 素材 B 視覺指標
+              </span>
+              <span id="imgScoreB" class="text-xs font-mono font-bold bg-[#f2e7dc] text-[#6d5135] px-2.5 py-0.5 rounded-md">0 分</span>
+            </div>
+            <div class="flex items-center gap-4">
+              <img id="imgThumbB" class="w-20 h-20 object-cover rounded-md border border-[#dcd6cd] shrink-0 bg-[#faf8f5]" alt="素材 B">
+              <div class="space-y-1 text-xs text-[#5a544e] flex-1" id="imgStatsB">
+                <div>色彩飽和度：<span class="font-bold text-[#2d2a27]">--</span></div>
+                <div>主體明暗對比：<span class="font-bold text-[#2d2a27]">--</span></div>
+                <div>視覺留白感：<span class="font-bold text-[#2d2a27]">--</span></div>
+              </div>
+            </div>
+            <p id="imgAdviceB" class="text-xs text-[#5a544e] bg-[#faf8f5] p-3 rounded-md border border-[#dcd6cd] leading-relaxed"></p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心維度比對矩陣 -->
+      <div class="bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-6 md:p-7 shadow-xs">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
+          <div>
+            <h3 class="text-lg font-bold text-[#2d2a27] flex items-center gap-2">
+              <i class="ph-bold ph-chart-bar text-[#697a82]"></i> 六大受眾心理與傳播維度評分比對
+            </h3>
+            <p class="text-xs text-[#706b65] mt-0.5">點數越高代表該項指標受眾心理抗拒越低、引導效果越好</p>
+          </div>
+          <div class="flex items-center gap-4 text-xs font-semibold">
+            <span class="flex items-center gap-1.5 text-[#556975]"><span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 文案 A</span>
+            <span class="flex items-center gap-1.5 text-[#846648]"><span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 文案 B</span>
+          </div>
+        </div>
+        
+        <div id="dimensionsList" class="space-y-4">
+          <!-- 維度進度條由 JS 渲染 -->
+        </div>
+      </div>
+
+      <!-- 具體優化戰術與策略診斷 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 文案 A 診斷 -->
+        <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-6 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2 text-[#556975] font-bold text-sm">
+              <i class="ph-bold ph-stethoscope text-lg"></i> 文案 A 語意診斷報告
+            </div>
+            <span class="text-xs px-2.5 py-0.5 bg-[#edf2f5] text-[#556975] font-mono font-bold rounded-md" id="scoreBadgeA">0 分</span>
+          </div>
+          <ul id="feedbackA" class="space-y-2.5 text-xs text-[#5a544e] leading-relaxed"></ul>
+        </div>
+
+        <!-- 文案 B 診斷 -->
+        <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-6 shadow-xs">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2 text-[#846648] font-bold text-sm">
+              <i class="ph-bold ph-stethoscope text-lg"></i> 文案 B 語意診斷報告
+            </div>
+            <span class="text-xs px-2.5 py-0.5 bg-[#f7efe4] text-[#846648] font-mono font-bold rounded-md" id="scoreBadgeB">0 分</span>
+          </div>
+          <ul id="feedbackB" class="space-y-2.5 text-xs text-[#5a544e] leading-relaxed"></ul>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- 手機即時樣機預覽彈窗 -->
+  <div id="mockupModal" class="fixed inset-0 z-50 bg-[#2d2a27]/45 backdrop-blur-xs hidden items-center justify-center p-4">
+    <div class="bg-[#faf8f5] rounded-md border border-[#d5cec5] max-w-sm w-full overflow-hidden shadow-xl">
+      <div class="bg-[#ede8e1] px-4 py-3 border-b border-[#d5cec5] flex items-center justify-between text-xs text-[#5a544e]">
+        <span class="font-bold flex items-center gap-1.5">
+          <i class="ph-bold ph-device-mobile text-[#6b7f8c]"></i> 手機廣告模擬畫面
+        </span>
+        <button type="button" onclick="closeMockupModal()" class="text-[#8c857d] hover:text-[#3d3a37] text-lg">
+          <i class="ph-bold ph-x"></i>
+        </button>
+      </div>
+
+      <div class="p-4 bg-[#faf8f5] space-y-3">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-md bg-[#6b7f8c] text-white flex items-center justify-center text-xs font-bold">
+            AD
+          </div>
+          <div>
+            <div class="text-xs font-bold text-[#2d2a27] flex items-center gap-1">
+              品牌行銷專頁 <span class="text-[10px] text-[#8c857d] font-normal">贊助 · 廣告</span>
+            </div>
+            <div class="text-[10px] text-[#8c857d]" id="mockupPlatformTag">Meta 資訊流</div>
+          </div>
+        </div>
+
+        <div class="text-xs text-[#3d3a37] leading-relaxed whitespace-pre-wrap" id="mockupBody">
+          正文內容預覽...
+        </div>
+
+        <div id="mockupImageContainer" class="w-full h-48 bg-[#ede8e1] rounded-md border border-[#d5cec5] flex flex-col items-center justify-center p-4 text-center overflow-hidden relative">
+          <img id="mockupRealImage" class="w-full h-full object-cover hidden" alt="廣告圖片預覽">
+          <div id="mockupImagePlaceholder" class="flex flex-col items-center justify-center">
+            <i class="ph-duotone ph-image text-3xl text-[#a69e94] mb-1"></i>
+            <span class="text-[11px] text-[#706b65] font-medium" id="mockupImageTitle">主標題文字預覽</span>
+            <span class="text-[9px] text-[#a69e94] mt-1">（示意展示區塊）</span>
+          </div>
+        </div>
+
+        <div class="bg-[#f4f1ea] p-2.5 rounded-md border border-[#d5cec5] flex items-center justify-between">
+          <div class="truncate pr-2">
+            <div class="text-[10px] text-[#8c857d] truncate uppercase tracking-wider font-mono">YOUR-BRAND.COM</div>
+            <div class="text-xs font-bold text-[#2d2a27] truncate" id="mockupBottomTitle">標題預覽</div>
+          </div>
+          <button type="button" id="mockupCtaBtn" class="shrink-0 px-3 py-1.5 bg-[#697a82] text-white rounded-md text-xs font-bold shadow-xs">
+            瞭解更多
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 歷史紀錄側邊抽屜 (History Drawer) -->
+  <div id="historyDrawer" class="fixed inset-y-0 right-0 w-full max-w-md bg-[#faf8f5] border-l border-[#d5cec5] shadow-xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+    <div class="p-5 border-b border-[#e9e4dc] flex items-center justify-between bg-[#f4f1ea]">
+      <div class="flex items-center gap-2">
+        <i class="ph-bold ph-clock-counter-clockwise text-[#697a82] text-lg"></i>
+        <h3 class="font-bold text-[#2d2a27] text-base">歷史測試紀錄</h3>
+      </div>
+      <button type="button" onclick="toggleHistoryDrawer()" class="p-1.5 rounded-md text-[#8c857d] hover:text-[#3d3a37] hover:bg-[#ede8e1] transition">
+        <i class="ph-bold ph-x text-lg"></i>
+      </button>
+    </div>
+
+    <div class="p-3 border-b border-[#e9e4dc] bg-[#faf8f5]">
+      <div class="relative">
+        <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-[#a69e94] text-sm"></i>
+        <input type="text" id="historySearchInput" placeholder="搜尋過去紀錄的標題或關鍵字..." oninput="filterHistoryUI()" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md pl-9 pr-3 py-2 text-xs text-[#3d3a37] focus:outline-none focus:border-[#8c9ba5] transition">
+      </div>
+    </div>
+
+    <div id="historyListContainer" class="flex-1 overflow-y-auto p-4 space-y-3 bg-[#f4f1ea]/50">
+      <!-- 動態載入歷史清單 -->
+    </div>
+
+    <div class="p-4 border-t border-[#d5cec5] bg-[#faf8f5] flex items-center justify-between">
+      <button type="button" onclick="promptClearAllHistory()" class="text-xs font-semibold text-[#a45e54] hover:text-[#80423a] hover:underline flex items-center gap-1">
+        <i class="ph ph-trash"></i> 清空全部紀錄
+      </button>
+      <button type="button" onclick="exportHistoryJson()" class="text-xs font-semibold text-[#5a544e] hover:text-[#2d2a27] bg-[#ede8e1] hover:bg-[#ded7ce] px-3 py-2 rounded-md flex items-center gap-1.5 border border-[#d5cec5] transition">
+        <i class="ph ph-download-simple"></i> 匯出 JSON
+      </button>
+    </div>
+  </div>
+
+  <!-- 背景遮罩 -->
+  <div id="drawerOverlay" onclick="toggleHistoryDrawer()" class="fixed inset-0 bg-[#2d2a27]/30 backdrop-blur-xs z-40 hidden transition-opacity"></div>
+
+  <script>
+    // 預設範例文案庫
+    const PRESETS = {
+      budget: {
+        titleA: "全方位智能記帳工具，讓你輕鬆掌握每筆開銷！",
+        bodyA: "本產品採用業界領先的自動化分類技術，致力於為用戶提供極致流暢的財務管理體驗。功能齊全、介面直觀，是年輕小資族理財規劃的最佳首選。",
+        ctaA: "立即註冊體驗",
+        titleB: "「明明沒買奢侈品，月底戶頭怎麼又空了？」",
+        bodyB: "你是不是也這樣：每天一杯手搖、通勤順手嗶卡，不知不覺 3,000 元就人間蒸發？別再花 15 分鐘手動對發票了。這款免動腦的自動記帳神器，3 秒抓出你的隱形漏水點，每個月無痛多存一趟出國機票錢。",
+        ctaB: "免費領取省錢健檢工具 ➜",
+        platform: "meta_feed",
+        audience: "young",
+        goal: "ctr"
+      },
+      b2b: {
+        titleA: "提升企業團隊協作效能，新一代雲端專案管理系統上線",
+        bodyA: "我們的系統集成了看板、甘特圖與時程追蹤，能夠協助企業打造高敏捷的工作流程，有效促進跨部門溝通效率。",
+        ctaA: "了解更多企業方案",
+        titleB: "每天開會追進度就耗掉 2 小時？3 步驟戒掉無效溝通",
+        bodyB: "專案又卡在等老闆核可？這套專為白領團隊打造的即時看板，實測讓跨部門溝通時間省下 40%，直接套用 10+ 款高效率敏捷模板，準時下班不再是奢求。",
+        ctaB: "免費索取團隊協作模板 ➜",
+        platform: "threads",
+        audience: "career",
+        goal: "lead"
+      },
+      skincare: {
+        titleA: "極致潤澤修護煥顏精華液，煥發肌膚原生光采",
+        bodyA: "蘊含頂級植物萃取精華，深入肌底補水保濕，質地清爽好吸收，適合各種肌膚日常保養使用。",
+        ctaA: "前往選購",
+        titleB: "熬夜追劇臉又垮又黃？拯救暗沉只要 10 分鐘！",
+        bodyB: "隔天有重要約會或提案，鏡子裡的自己卻滿臉疲態？這罐急救安瓶實測 3 倍滲透保濕，撫平粗糙乾紋，連素顏都像睡飽 8 小時一樣自帶透光感！",
+        ctaB: "領取 3 日急救體驗組 ➜",
+        platform: "ig_story",
+        audience: "young",
+        goal: "purchase"
+      }
+    };
+
+    const LEXICON = {
+      friction: ["全方位", "卓越", "致力於", "領導品牌", "無懈可擊", "頂級享受", "首選", "引領未來", "無微不至", "極致體驗", "本公司", "全新推出", "極致潤澤", "極致流暢"],
+      pain: ["卡關", "浪費", "白花", "痛點", "焦慮", "無效", "踩雷", "瞎猜", "沒時間", "卡在", "崩潰", "救星", "避坑", "熬夜", "虧錢", "漏水", "人間蒸發", "耗掉", "暗沉", "疲態", "垮"],
+      power: ["免費", "秘訣", "指南", "避坑", "清單", "模板", "公式", "實測", "3個", "10分鐘", "直接套用", "私藏", "真相", "解密", "神器", "無痛", "急救", "省下", "抓出"],
+      hasNumbers: /\d+(\%|折|萬|元|倍|個|天|秒|步|分|小時)/i,
+      hasQuestions: /[？\?]/,
+      hasYou: /[你您]/
+    };
+
+    const AUDIENCE_MODELS = {
+      young: {
+        label: "年輕小資族",
+        favors: ["省錢", "CP值", "小資", "學生", "平價", "神器", "無痛", "月光", "手搖", "租屋", "自由", "輕鬆", "追劇", "打卡", "爆款", "免動腦"],
+        avoids: ["企業級", "架構", "賦能", "跨部門", "宏觀", "深耕", "佈局"],
+        styleWeight: { hook: 0.30, pain: 0.25, clarity: 0.15, curiosity: 0.15, cta: 0.15 },
+        idealLength: 160,
+        imgPref: { minSat: 45, maxComplexity: 60 }
+      },
+      career: {
+        label: "職場白領/主管",
+        favors: ["效率", "下班", "開會", "敏捷", "產出", "老闆", "溝通", "專業", "省時", "升遷", "協作", "看板", "管理", "節省", "準時"],
+        avoids: ["好玩", "耍廢", "萌", "隨手", "便宜貨"],
+        styleWeight: { hook: 0.20, pain: 0.30, clarity: 0.20, curiosity: 0.15, cta: 0.15 },
+        idealLength: 220,
+        imgPref: { minSat: 25, maxComplexity: 70 }
+      },
+      parent: {
+        label: "家庭育兒採購者",
+        favors: ["安心", "安全", "健康", "守護", "天然", "認證", "省心", "精打細算", "孩子", "家庭", "爸媽", "耐用", "檢驗", "無毒"],
+        avoids: ["刺激", "熬夜", "衝動", "派對", "速成"],
+        styleWeight: { hook: 0.20, pain: 0.30, clarity: 0.25, curiosity: 0.10, cta: 0.15 },
+        idealLength: 200,
+        imgPref: { minSat: 30, maxComplexity: 55 }
+      },
+      tech: {
+        label: "科技專業/工程師",
+        favors: ["實測", "數據", "自動化", "開源", "整合", "性能", "流程", "公式", "規格", "效率提升", "API", "模型", "深度解析"],
+        avoids: ["神奇", "天花板", "極致享受", "美麗", "神效", "靈丹妙藥"],
+        styleWeight: { hook: 0.15, pain: 0.25, clarity: 0.30, curiosity: 0.20, cta: 0.10 },
+        idealLength: 250,
+        imgPref: { minSat: 20, maxComplexity: 80 }
+      }
+    };
+
+    const PLATFORM_SPECS = {
+      meta_feed: {
+        name: "Meta 資訊流 (FB/IG)",
+        imgWeight: 0.35,
+        copyWeight: 0.65,
+        maxHeadlineLen: 40,
+        foldThreshold: 125,
+        weights: { hook: 0.30, pain: 0.25, clarity: 0.15, curiosity: 0.15, cta: 0.15 }
+      },
+      ig_story: {
+        name: "IG 限時動態 / Reels",
+        imgWeight: 0.55,
+        copyWeight: 0.45,
+        maxHeadlineLen: 24,
+        maxTotalLen: 70,
+        weights: { hook: 0.45, pain: 0.15, clarity: 0.15, curiosity: 0.10, cta: 0.15 }
+      },
+      threads: {
+        name: "Threads 脆文廣告",
+        imgWeight: 0.15,
+        copyWeight: 0.85,
+        maxHeadlineLen: 45,
+        idealBodyMin: 80,
+        weights: { hook: 0.20, pain: 0.35, clarity: 0.20, curiosity: 0.15, cta: 0.10 }
+      },
+      google_search: {
+        name: "Google 關鍵字搜尋",
+        imgWeight: 0.0,
+        copyWeight: 1.0,
+        maxTitleChars: 30,
+        maxBodyChars: 90,
+        weights: { hook: 0.30, pain: 0.20, clarity: 0.30, curiosity: 0.05, cta: 0.15 }
+      },
+      line_voom: {
+        name: "LINE 官方訊息 / VOOM",
+        imgWeight: 0.30,
+        copyWeight: 0.70,
+        maxHeadlineLen: 28,
+        weights: { hook: 0.25, pain: 0.20, clarity: 0.20, curiosity: 0.15, cta: 0.20 }
+      }
+    };
+
+    const STORAGE_KEY = "AD_COPY_AB_HISTORY_LIGHT_V2";
+    let lastAnalysisReport = null;
+    let currentTestMode = 'copy_diff'; // 僅允許 'copy_diff' 或 'image_diff'
+
+    const imageMetrics = {
+      A: null,
+      B: null
+    };
+
+    // A/B 測試模式切換 (嚴格單一變因)
+    function setTestMode(mode) {
+      if (mode !== 'copy_diff' && mode !== 'image_diff') {
+        mode = 'copy_diff';
+      }
+      currentTestMode = mode;
+      
+      const btnCopy = document.getElementById('modeBtn_copy');
+      const btnImg = document.getElementById('modeBtn_image');
+      const descText = document.getElementById('modeDescriptionText');
+
+      if (!btnCopy || !btnImg || !descText) return;
+
+      [btnCopy, btnImg].forEach(btn => {
+        btn.className = "px-3 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5";
+      });
+
+      const activeClass = "px-3 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs";
+
+      // 切換模式時立即清空所有內容與素材
+      clearAll(false);
+
+      if (mode === 'copy_diff') {
+        btnCopy.className = activeClass;
+        descText.textContent = "【模式 1】鎖定圖片完全相同，專注驗證文案 A vs B 的受眾共鳴與點擊率差異。";
+        applyCopyDiffMode();
+      } else {
+        btnImg.className = activeClass;
+        descText.textContent = "【模式 2】鎖定文案完全相同，專注驗證素材圖片 A vs B 的指尖停頓吸睛力與轉化差異。";
+        applyImageDiffMode();
+      }
+
+      runAnalysis(false, false);
+    }
+
+    function applyCopyDiffMode() {
+      const lockA = document.getElementById('imgLockBadgeA');
+      const lockB = document.getElementById('imgLockBadgeB');
+      const copyNotice = document.getElementById('copySyncNoticeB');
+
+      if (lockA) lockA.classList.remove('hidden');
+      if (lockB) {
+        lockB.classList.remove('hidden');
+        lockB.textContent = "已自動同步素材 A";
+      }
+      if (copyNotice) copyNotice.classList.add('hidden');
+
+      setInputReadonly('titleB', false);
+      setInputReadonly('bodyB', false);
+      setInputReadonly('ctaB', false);
+
+      syncImageAToB();
+      showToast("已切換為：文案不同 · 圖片相同 (嚴格單變因)");
+    }
+
+    function applyImageDiffMode() {
+      const lockA = document.getElementById('imgLockBadgeA');
+      const lockB = document.getElementById('imgLockBadgeB');
+      const copyNotice = document.getElementById('copySyncNoticeB');
+
+      if (lockA) lockA.classList.add('hidden');
+      if (lockB) lockB.classList.add('hidden');
+      if (copyNotice) copyNotice.classList.remove('hidden');
+
+      syncCopyAToB(false);
+      setInputReadonly('titleB', true);
+      setInputReadonly('bodyB', true);
+      setInputReadonly('ctaB', true);
+
+      showToast("已切換為：圖片不同 · 文案相同 (嚴格單變因)");
+    }
+
+    function setInputReadonly(elementId, isReadonly) {
+      const el = document.getElementById(elementId);
+      if (!el) return;
+      el.readOnly = isReadonly;
+      if (isReadonly) {
+        el.classList.add('bg-[#ede8e1]/60', 'text-[#706b65]', 'cursor-not-allowed');
+      } else {
+        el.classList.remove('bg-[#ede8e1]/60', 'text-[#706b65]', 'cursor-not-allowed');
+      }
+    }
+
+    function syncCopyAToB(notify = false) {
+      const titleA = document.getElementById('titleA');
+      const bodyA = document.getElementById('bodyA');
+      const ctaA = document.getElementById('ctaA');
+      const titleB = document.getElementById('titleB');
+      const bodyB = document.getElementById('bodyB');
+      const ctaB = document.getElementById('ctaB');
+
+      if (!titleA || !titleB || !bodyA || !bodyB || !ctaA || !ctaB) return;
+
+      titleB.value = titleA.value;
+      bodyB.value = bodyA.value;
+      ctaB.value = ctaA.value;
+      updateCharCount();
+      if (notify) showToast("已將文案 A 內容同調至文案 B");
+    }
+
+    function syncImageAToB() {
+      if (currentTestMode !== 'copy_diff') return;
+
+      if (imageMetrics.A) {
+        imageMetrics.B = { ...imageMetrics.A };
+        const wrapperB = document.getElementById('imgPreviewWrapperB');
+        const uploadPromptB = document.getElementById('uploadPromptB');
+        const imgPreviewB = document.getElementById('imgPreviewB');
+        const removeBtnB = document.getElementById('removeImgBtnB');
+        const changeTagB = document.getElementById('imgChangeTagB');
+        const tagB = document.getElementById('imgMetricsTagB');
+
+        if (wrapperB) wrapperB.classList.remove('hidden');
+        if (uploadPromptB) uploadPromptB.classList.add('hidden');
+        if (imgPreviewB) imgPreviewB.src = imageMetrics.B.dataUrl;
+        if (removeBtnB) removeBtnB.classList.add('hidden');
+        if (changeTagB) changeTagB.textContent = "與 A 同步中";
+
+        const tagText = `同步素材 A (吸睛指數 ${imageMetrics.B.visualScore}分)`;
+        if (tagB) {
+          tagB.innerHTML = `<i class="ph-bold ph-link text-emerald-300"></i> ${tagText}`;
+        }
+      } else {
+        clearImage('B', false);
+      }
+    }
+
+    function triggerDropzoneB() {
+      if (currentTestMode === 'copy_diff') {
+        showToast("「文案不同 · 圖片相同」模式下，請直接上傳或更換素材 A，系統將自動同步至 B", false);
+        return;
+      }
+      const fileInputB = document.getElementById('fileInputB');
+      if (fileInputB) fileInputB.click();
+    }
+
+    function onCopyAInput() {
+      if (currentTestMode === 'image_diff') {
+        syncCopyAToB(false);
+      }
+      updateCharCount();
+    }
+
+    // 圖片上傳與分析
+    function handleImageUpload(variant, event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith('image/')) {
+        showToast("請上傳圖片格式檔案 (JPG, PNG, WebP)", false);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const dataUrl = e.target.result;
+        const img = new Image();
+        img.onload = function() {
+          analyzeImageCanvas(variant, img, dataUrl);
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function analyzeImageCanvas(variant, img, dataUrl) {
+      const canvas = document.getElementById(`canvas${variant}`);
+      const ctx = canvas.getContext('2d');
+      
+      const sampleW = 160;
+      const sampleH = 160;
+      canvas.width = sampleW;
+      canvas.height = sampleH;
+
+      ctx.drawImage(img, 0, 0, sampleW, sampleH);
+      const imgData = ctx.getImageData(0, 0, sampleW, sampleH);
+      const data = imgData.data;
+
+      let totalBrightness = 0;
+      let totalSaturation = 0;
+      let warmPixels = 0;
+      let edgeChanges = 0;
+      const totalPixels = sampleW * sampleH;
+      let prevLuminance = 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i];
+        const g = data[i+1];
+        const b = data[i+2];
+
+        const luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        totalBrightness += luminance;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const delta = max - min;
+        const sat = max === 0 ? 0 : (delta / max);
+        totalSaturation += sat;
+
+        if (r > b + 20) warmPixels++;
+        if (Math.abs(luminance - prevLuminance) > 35) edgeChanges++;
+        prevLuminance = luminance;
+      }
+
+      const avgBrightness = Math.round(totalBrightness / totalPixels);
+      const avgSaturation = Math.round((totalSaturation / totalPixels) * 100);
+      const warmRatio = Math.round((warmPixels / totalPixels) * 100);
+      const visualComplexity = Math.min(100, Math.round((edgeChanges / totalPixels) * 350));
+
+      let visualScore = 50;
+      if (avgSaturation >= 38 && avgSaturation <= 82) {
+        visualScore += 18;
+      } else if (avgSaturation < 25) {
+        visualScore -= 10;
+      }
+
+      if (avgBrightness >= 90 && avgBrightness <= 200) {
+        visualScore += 16;
+      } else {
+        visualScore -= 12;
+      }
+
+      if (visualComplexity >= 20 && visualComplexity <= 65) {
+        visualScore += 14;
+      } else if (visualComplexity > 75) {
+        visualScore -= 8;
+      }
+
+      visualScore = Math.max(30, Math.min(98, visualScore));
+
+      imageMetrics[variant] = {
+        dataUrl,
+        avgBrightness,
+        avgSaturation,
+        warmRatio,
+        visualComplexity,
+        visualScore
+      };
+
+      document.getElementById(`uploadPrompt${variant}`).classList.add('hidden');
+      const wrapper = document.getElementById(`imgPreviewWrapper${variant}`);
+      wrapper.classList.remove('hidden');
+      document.getElementById(`imgPreview${variant}`).src = dataUrl;
+      document.getElementById(`removeImgBtn${variant}`).classList.remove('hidden');
+
+      const tagText = `吸睛指數 ${visualScore}分 · 飽和度 ${avgSaturation}%`;
+      document.getElementById(`imgMetricsTag${variant}`).innerHTML = `
+        <i class="ph-bold ph-sparkle text-amber-300"></i> ${tagText}
+      `;
+
+      showToast(`已成功辨識素材 ${variant} 的視覺吸引力數據`);
+
+      if (variant === 'A' && currentTestMode === 'copy_diff') {
+        syncImageAToB();
+      }
+
+      runAnalysis(false, false);
+    }
+
+    function clearImage(variant, notify = true) {
+      imageMetrics[variant] = null;
+      const fileInput = document.getElementById(`fileInput${variant}`);
+      const prompt = document.getElementById(`uploadPrompt${variant}`);
+      const wrapper = document.getElementById(`imgPreviewWrapper${variant}`);
+      const preview = document.getElementById(`imgPreview${variant}`);
+      const removeBtn = document.getElementById(`removeImgBtn${variant}`);
+
+      if (fileInput) fileInput.value = "";
+      if (prompt) prompt.classList.remove('hidden');
+      if (wrapper) wrapper.classList.add('hidden');
+      if (preview) preview.src = "";
+      if (removeBtn) removeBtn.classList.add('hidden');
+
+      if (variant === 'A' && currentTestMode === 'copy_diff') {
+        clearImage('B', false);
+      }
+
+      if (notify) showToast(`已移除素材 ${variant} 圖片`);
+      runAnalysis(false, false);
+    }
+
+    // Toast 通知
+    function showToast(message, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+
+      toastMsg.textContent = message;
+      if (isSuccess) {
+        toastIcon.className = "ph-fill ph-check-circle text-emerald-600 text-lg";
+      } else {
+        toastIcon.className = "ph-fill ph-warning-circle text-amber-600 text-lg";
+      }
+
+      toast.classList.remove('-translate-y-28', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-28', 'opacity-0');
+      }, 2500);
+    }
+
+    // Modal
+    let confirmCallback = null;
+    function openConfirmModal(title, desc, callback) {
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmDesc').textContent = desc;
+      confirmCallback = callback;
+      const modal = document.getElementById('confirmModal');
+      modal.classList.remove('hidden');
+    }
+
+    function closeConfirmModal(result) {
+      const modal = document.getElementById('confirmModal');
+      modal.classList.add('hidden');
+      if (result && typeof confirmCallback === 'function') {
+        confirmCallback();
+      }
+      confirmCallback = null;
+    }
+
+    // 歷史紀錄處理
+    function getHistory() {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        return stored ? JSON.parse(stored) : [];
+      } catch (e) {
+        console.error(e);
+        return [];
+      }
+    }
+
+    function saveHistoryItem(item) {
+      let list = getHistory();
+      list.unshift(item);
+      if (list.length > 50) list = list.slice(0, 50);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      updateHistoryUI();
+    }
+
+    function deleteHistoryItem(id, event) {
+      if (event) event.stopPropagation();
+      let list = getHistory();
+      list = list.filter(item => item.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+      updateHistoryUI();
+      showToast("已刪除該筆測試紀錄");
+    }
+
+    function promptClearAllHistory() {
+      openConfirmModal("清空所有歷史紀錄", "確定要清空所有的 A/B 測試歷史紀錄嗎？清空後無法復原。", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        updateHistoryUI();
+        showToast("已成功清空所有歷史紀錄");
+      });
+    }
+
+    function exportHistoryJson() {
+      const data = getHistory();
+      if (data.length === 0) {
+        showToast("目前尚無可匯出的歷史紀錄", false);
+        return;
+      }
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ab_test_report_${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("已下載 JSON 報表");
+    }
+
+    function updateHistoryUI(filterQuery = "") {
+      const list = getHistory();
+      const countBadge = document.getElementById('historyCountBadge');
+      if (countBadge) countBadge.textContent = list.length;
+
+      const container = document.getElementById('historyListContainer');
+      if (!container) return;
+
+      const filtered = filterQuery 
+        ? list.filter(x => (x.titleA + x.titleB + x.platform).toLowerCase().includes(filterQuery.toLowerCase()))
+        : list;
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="h-64 flex flex-col items-center justify-center text-[#8c857d] text-center text-xs">
+            <i class="ph ph-folder-dashed text-4xl mb-2 text-[#a69e94]"></i>
+            ${filterQuery ? '沒有符合關鍵字的紀錄' : '尚無任何歷史測試紀錄<br>執行推算後將自動保存於此'}
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(item => `
+        <div onclick="restoreHistory('${item.id}')" class="p-4 bg-[#faf8f5] hover:bg-[#ede8e1] border border-[#d5cec5] hover:border-[#8c9ba5] rounded-md cursor-pointer transition shadow-xs group relative">
+          <div class="flex items-center justify-between text-[11px] text-[#8c857d] mb-2">
+            <span>${item.date}</span>
+            <div class="flex items-center gap-1.5">
+              <span class="px-2 py-0.5 bg-[#ede8e1] text-[#5a544e] rounded-xs font-medium text-[10px]">${item.platform}</span>
+              <button type="button" onclick="deleteHistoryItem('${item.id}', event)" class="p-1 text-[#8c857d] hover:text-[#a45e54] rounded-xs transition" title="刪除此筆">
+                <i class="ph ph-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 text-xs">
+            <div class="truncate text-[#3d3a37] font-medium"><strong class="text-[#556975]">A:</strong> ${escapeHtml(item.titleA || '未填寫標題')}</div>
+            <div class="truncate text-[#3d3a37] font-medium"><strong class="text-[#846648]">B:</strong> ${escapeHtml(item.titleB || '未填寫標題')}</div>
+          </div>
+
+          <div class="mt-3 pt-2.5 border-t border-[#e9e4dc] flex items-center justify-between text-xs font-semibold">
+            <span class="${item.winner === '文案 A' || item.winner === '版本 A' ? 'text-[#556975]' : 'text-[#846648]'}">
+              🏆 ${item.winner} 勝出 (${item.winRate}%)
+            </span>
+            <span class="text-[#435948] font-mono text-[11px] bg-[#e2ebe4] px-2 py-0.5 rounded-xs">
+              +${item.lift}% CTR
+            </span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterHistoryUI() {
+      const q = document.getElementById('historySearchInput').value.trim();
+      updateHistoryUI(q);
+    }
+
+    function toggleHistoryDrawer() {
+      const drawer = document.getElementById('historyDrawer');
+      const overlay = document.getElementById('drawerOverlay');
+      const isOpen = !drawer.classList.contains('translate-x-full');
+
+      if (isOpen) {
+        drawer.classList.add('translate-x-full');
+        overlay.classList.add('hidden');
+      } else {
+        updateHistoryUI();
+        drawer.classList.remove('translate-x-full');
+        overlay.classList.remove('hidden');
+      }
+    }
+
+    function togglePresetMenu() {
+      const menu = document.getElementById('presetMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    window.addEventListener('click', (e) => {
+      const container = document.getElementById('presetDropdownContainer');
+      const menu = document.getElementById('presetMenu');
+      if (container && !container.contains(e.target) && menu && !menu.classList.contains('hidden')) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    function restoreHistory(id) {
+      const list = getHistory();
+      const item = list.find(x => x.id === id);
+      if (!item) return;
+
+      document.getElementById('titleA').value = item.titleA || "";
+      document.getElementById('bodyA').value = item.bodyA || "";
+      document.getElementById('ctaA').value = item.ctaA || "";
+
+      document.getElementById('titleB').value = item.titleB || "";
+      document.getElementById('bodyB').value = item.bodyB || "";
+      document.getElementById('ctaB').value = item.ctaB || "";
+
+      document.getElementById('platformSelect').value = item.platformValue || "meta_feed";
+      document.getElementById('audienceSelect').value = item.audienceValue || "young";
+      document.getElementById('goalSelect').value = item.goalValue || "ctr";
+
+      toggleHistoryDrawer();
+      runAnalysis(false, false);
+      showToast("已成功載入歷史紀錄文案");
+    }
+
+    function escapeHtml(string) {
+      if (!string) return '';
+      return String(string).replace(/[&<>"']/g, function (s) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[s];
+      });
+    }
+
+    function loadPreset(key) {
+      const data = PRESETS[key];
+      if (!data) return;
+      document.getElementById('titleA').value = data.titleA;
+      document.getElementById('bodyA').value = data.bodyA;
+      document.getElementById('ctaA').value = data.ctaA;
+      document.getElementById('titleB').value = data.titleB;
+      document.getElementById('bodyB').value = data.bodyB;
+      document.getElementById('ctaB').value = data.ctaB;
+
+      if (data.platform) document.getElementById('platformSelect').value = data.platform;
+      if (data.audience) document.getElementById('audienceSelect').value = data.audience;
+      if (data.goal) document.getElementById('goalSelect').value = data.goal;
+
+      const menu = document.getElementById('presetMenu');
+      if (menu) menu.classList.add('hidden');
+
+      if (currentTestMode === 'image_diff') {
+        syncCopyAToB(false);
+      }
+
+      updateCharCount();
+      runAnalysis(true, true);
+      showToast("已成功載入行業範例文案");
+    }
+
+    function clearAll(notify = true) {
+      document.getElementById('titleA').value = "";
+      document.getElementById('bodyA').value = "";
+      document.getElementById('ctaA').value = "";
+      document.getElementById('titleB').value = "";
+      document.getElementById('bodyB').value = "";
+      document.getElementById('ctaB').value = "";
+      document.getElementById('resultsCard').classList.add('hidden');
+      document.getElementById('copySummaryBtn').classList.add('hidden');
+      clearImage('A', false);
+      clearImage('B', false);
+      updateCharCount();
+      if (notify) showToast("已重置輸入框");
+    }
+
+    function updateCharCount() {
+      const titleA = document.getElementById('titleA');
+      const bodyA = document.getElementById('bodyA');
+      const titleB = document.getElementById('titleB');
+      const bodyB = document.getElementById('bodyB');
+
+      const lenA = ((titleA ? titleA.value : "") + (bodyA ? bodyA.value : "")).length;
+      const lenB = ((titleB ? titleB.value : "") + (bodyB ? bodyB.value : "")).length;
+
+      const badgeA = document.getElementById('charCountA');
+      const badgeB = document.getElementById('charCountB');
+
+      if (badgeA) badgeA.textContent = `${lenA} 字`;
+      if (badgeB) badgeB.textContent = `${lenB} 字`;
+    }
+
+    // 核心語意演算法
+    function scoreAdCopy(title, body, cta, platform, audience, goal) {
+      const fullText = (title + " " + body).trim();
+      if (!fullText) return { total: 0, dims: {}, notes: [] };
+
+      let scores = {
+        hook: 50,
+        pain: 50,
+        clarity: 65,
+        curiosity: 50,
+        cta: 50,
+        platformFit: 60
+      };
+
+      let notes = [];
+
+      // 1. Hook
+      if (title.length >= 8 && title.length <= 36) {
+        scores.hook += 15;
+      } else if (title.length > 45) {
+        scores.hook -= 10;
+        notes.push("標題字數稍長，在手機小螢幕上容易因被截斷而降低第一瞥吸引力");
+      }
+
+      if (LEXICON.hasQuestions.test(title)) {
+        scores.hook += 14;
+        notes.push("標題採用提問句，直接挑起讀者大腦的「自我對號入座」反射");
+      }
+      if (LEXICON.hasNumbers.test(title)) {
+        scores.hook += 14;
+        notes.push("標題帶有精準數字/時間量詞，有效建立高可信度與明確預期");
+      }
+      if (title.includes("「") || title.includes("【") || title.includes("：")) {
+        scores.hook += 8;
+      }
+
+      // 2. 痛點切身度
+      const youCount = (fullText.match(LEXICON.hasYou) || []).length;
+      if (youCount >= 2) {
+        scores.pain += 15;
+        notes.push(`頻繁使用「你/您」(${youCount}次)，視角聚焦於讀者感受而非自我推銷`);
+      } else if (youCount === 1) {
+        scores.pain += 6;
+      } else {
+        scores.pain -= 12;
+        notes.push("缺少第二人稱呼喚，語氣偏向品牌自我展示，較難引發讀者共情");
+      }
+
+      let painCount = 0;
+      LEXICON.pain.forEach(w => { if (fullText.includes(w)) painCount++; });
+      scores.pain += Math.min(painCount * 9, 25);
+      if (painCount > 0) {
+        notes.push(`命中 ${painCount} 個痛感關鍵詞，精準觸及受眾現狀窘境`);
+      }
+
+      // 3. 認知流暢度
+      let frictionCount = 0;
+      LEXICON.friction.forEach(w => { if (fullText.includes(w)) frictionCount++; });
+      if (frictionCount > 0) {
+        scores.clarity -= (frictionCount * 12);
+        notes.push(`包含 ${frictionCount} 個抽象空洞的宣傳官腔，受眾滑過容易自動忽略無視`);
+      } else {
+        scores.clarity += 12;
+        notes.push("文案用詞具體親民、無假大空的官腔阻礙，閱讀認知阻力極低");
+      }
+
+      // 4. 好奇心缺口
+      let powerCount = 0;
+      LEXICON.power.forEach(w => { if (fullText.includes(w)) powerCount++; });
+      scores.curiosity += Math.min(powerCount * 8, 25);
+      if (powerCount >= 2) {
+        notes.push("包含明確解方/方法論關鍵字 (清單/實測/模板)，提供高度資訊獲取動機");
+      }
+
+      // 5. 行動呼籲阻力
+      const ctaText = cta.trim();
+      if (!ctaText) {
+        scores.cta = 40;
+        notes.push("未設定明確的行動呼籲按鈕 (CTA)，受眾看完容易缺乏下一步引導");
+      } else {
+        if (ctaText.includes("免費") || ctaText.includes("領取") || ctaText.includes("索取") || ctaText.includes("看") || ctaText.includes("➜") || ctaText.includes("下載")) {
+          scores.cta += 25;
+          notes.push(`CTA「${ctaText}」具備低門檻承諾與即刻收益，點擊阻力很小`);
+        } else if (ctaText.includes("立即購買") || ctaText.includes("立即結帳") || ctaText.includes("註冊會員")) {
+          scores.cta += 8;
+          notes.push(`CTA「${ctaText}」要求讀者立即做出較高的心理或金錢承諾，阻力稍大`);
+        } else {
+          scores.cta += 12;
+        }
+      }
+
+      // 6. TA 心理共鳴
+      const taConfig = AUDIENCE_MODELS[audience] || AUDIENCE_MODELS.young;
+      let taMatchCount = 0;
+      let taAvoidCount = 0;
+
+      taConfig.favors.forEach(kw => {
+        if (fullText.includes(kw)) taMatchCount++;
+      });
+      taConfig.avoids.forEach(kw => {
+        if (fullText.includes(kw)) taAvoidCount++;
+      });
+
+      if (taMatchCount > 0) {
+        const bonus = Math.min(taMatchCount * 7, 20);
+        scores.pain += bonus;
+        scores.hook += Math.round(bonus * 0.5);
+        notes.push(`【TA 共鳴】命中 ${taMatchCount} 個針對「${taConfig.label}」的高共感關鍵詞`);
+      } else {
+        scores.pain -= 8;
+      }
+
+      if (taAvoidCount > 0) {
+        scores.clarity -= (taAvoidCount * 10);
+        notes.push(`【TA 違和】出現 ${taAvoidCount} 個易使「${taConfig.label}」產生防禦心的詞彙`);
+      }
+
+      // 7. 投放平台適配
+      if (platform === "google_search") {
+        if (title.length > 30) {
+          scores.platformFit -= 35;
+          scores.clarity -= 20;
+          notes.push(`【Google 致命傷】標題長度達 ${title.length} 字（超過 30 字上限），將被強制截斷`);
+        } else if (title.length >= 10 && title.length <= 30) {
+          scores.platformFit += 25;
+          notes.push("【Google 格式加分】標題長度完全符合 Google 搜尋版位限制");
+        }
+        if (LEXICON.hasNumbers.test(title)) scores.platformFit += 15;
+        if (body.length > 90) scores.platformFit -= 20;
+      } else if (platform === "ig_story") {
+        if (fullText.length > 80) {
+          scores.platformFit -= 30;
+          scores.hook -= 15;
+          notes.push(`【IG 限動節奏過慢】總字數 ${fullText.length} 字過多，文字密集易被滑走`);
+        } else {
+          scores.platformFit += 20;
+          notes.push("【IG 限動適配】文案短小精悍，利於在 3 秒內消化重點");
+        }
+      } else if (platform === "threads") {
+        if (youCount >= 1 || fullText.includes("我") || fullText.includes("？")) {
+          scores.platformFit += 25;
+          notes.push("【Threads 脆味濃厚】具備個人真實語氣與提問探討");
+        }
+        if (frictionCount > 0) scores.platformFit -= 25;
+      } else if (platform === "line_voom") {
+        if (ctaText.includes("領取") || ctaText.includes("免費") || title.includes("【")) {
+          scores.platformFit += 25;
+        } else {
+          scores.platformFit -= 10;
+        }
+      } else if (platform === "meta_feed") {
+        if (body.length > 120) {
+          scores.platformFit -= 12;
+          notes.push("【Meta 折疊警告】正文超過 120 字，關鍵文案會被「查看更多」收攏折疊");
+        }
+      }
+
+      Object.keys(scores).forEach(k => {
+        scores[k] = Math.max(20, Math.min(98, scores[k]));
+      });
+
+      const platSpec = PLATFORM_SPECS[platform] || PLATFORM_SPECS.meta_feed;
+      const pw = platSpec.weights;
+      const aw = taConfig.styleWeight;
+
+      const total = Math.round(
+        scores.hook * (pw.hook * 0.5 + aw.hook * 0.5) +
+        scores.pain * (pw.pain * 0.5 + aw.pain * 0.5) +
+        scores.clarity * (pw.clarity * 0.5 + aw.clarity * 0.5) +
+        scores.curiosity * (pw.curiosity * 0.5 + aw.curiosity * 0.5) +
+        scores.cta * (pw.cta * 0.5 + aw.cta * 0.5) +
+        scores.platformFit * 0.20
+      );
+
+      return { total, dims: scores, notes };
+    }
+
+    function runAnalysis(forceOpen = false, saveToRecord = false) {
+      updateCharCount();
+
+      const titleA = document.getElementById('titleA').value.trim();
+      const bodyA = document.getElementById('bodyA').value.trim();
+      const ctaA = document.getElementById('ctaA').value.trim();
+
+      const titleB = document.getElementById('titleB').value.trim();
+      const bodyB = document.getElementById('bodyB').value.trim();
+      const ctaB = document.getElementById('ctaB').value.trim();
+
+      const platformEl = document.getElementById('platformSelect');
+      const audienceEl = document.getElementById('audienceSelect');
+      const goalEl = document.getElementById('goalSelect');
+
+      const platform = platformEl.value;
+      const audience = audienceEl.value;
+      const goal = goalEl.value;
+
+      const hasImgA = !!imageMetrics.A;
+      const hasImgB = !!imageMetrics.B;
+
+      if (!titleA && !titleB && !bodyA && !bodyB && !hasImgA && !hasImgB) {
+        if (forceOpen) showToast("請先填入文案或上傳圖片進行比較！", false);
+        return;
+      }
+
+      const resA = scoreAdCopy(titleA, bodyA, ctaA, platform, audience, goal);
+      const resB = scoreAdCopy(titleB, bodyB, ctaB, platform, audience, goal);
+
+      const taConfig = AUDIENCE_MODELS[audience] || AUDIENCE_MODELS.young;
+      const platSpec = PLATFORM_SPECS[platform] || PLATFORM_SPECS.meta_feed;
+
+      let imgScoreA = hasImgA ? imageMetrics.A.visualScore : 0;
+      let imgScoreB = hasImgB ? imageMetrics.B.visualScore : 0;
+
+      if (hasImgA) {
+        if (imageMetrics.A.avgSaturation >= taConfig.imgPref.minSat) imgScoreA += 4;
+        if (imageMetrics.A.visualComplexity <= taConfig.imgPref.maxComplexity) imgScoreA += 3;
+        imgScoreA = Math.min(98, imgScoreA);
+      }
+      if (hasImgB) {
+        if (imageMetrics.B.avgSaturation >= taConfig.imgPref.minSat) imgScoreB += 4;
+        if (imageMetrics.B.visualComplexity <= taConfig.imgPref.maxComplexity) imgScoreB += 3;
+        imgScoreB = Math.min(98, imgScoreB);
+      }
+
+      let finalScoreA = resA.total;
+      let finalScoreB = resB.total;
+
+      const platImgW = platSpec.imgWeight;
+      const platCopyW = platSpec.copyWeight;
+
+      if (platImgW === 0) {
+        finalScoreA = resA.total;
+        finalScoreB = resB.total;
+      } else if (hasImgA && hasImgB) {
+        finalScoreA = Math.round(resA.total * platCopyW + imgScoreA * platImgW);
+        finalScoreB = Math.round(resB.total * platCopyW + imgScoreB * platImgW);
+      } else if (hasImgA) {
+        finalScoreA = Math.round(resA.total * (1 - platImgW * 0.6) + imgScoreA * (platImgW * 0.6));
+      } else if (hasImgB) {
+        finalScoreB = Math.round(resB.total * (1 - platImgW * 0.6) + imgScoreB * (platImgW * 0.6));
+      }
+
+      if (goal === "purchase") {
+        finalScoreA = Math.round(finalScoreA * 0.9 + resA.dims.cta * 0.1);
+        finalScoreB = Math.round(finalScoreB * 0.9 + resB.dims.cta * 0.1);
+      } else if (goal === "lead") {
+        finalScoreA = Math.round(finalScoreA * 0.9 + resA.dims.curiosity * 0.1);
+        finalScoreB = Math.round(finalScoreB * 0.9 + resB.dims.curiosity * 0.1);
+      }
+
+      document.getElementById('resultsCard').classList.remove('hidden');
+      document.getElementById('copySummaryBtn').classList.remove('hidden');
+
+      const sum = (finalScoreA + finalScoreB) || 1;
+      const winRateA = Math.round((finalScoreA / sum) * 100);
+      const winRateB = 100 - winRateA;
+
+      const diff = Math.abs(finalScoreA - finalScoreB);
+      const isWinnerA = finalScoreA > finalScoreB;
+      const isTie = finalScoreA === finalScoreB;
+
+      const estimatedCtrLift = (diff * 0.76 + 4.1).toFixed(1);
+
+      document.getElementById('scoreBadgeA').textContent = `${finalScoreA} 分`;
+      document.getElementById('scoreBadgeB').textContent = `${finalScoreB} 分`;
+
+      const imgSection = document.getElementById('imageAnalysisSection');
+      if (platImgW === 0 && (hasImgA || hasImgB)) {
+        imgSection.classList.remove('hidden');
+        renderImageComparison(hasImgA, hasImgB, "Google 搜尋廣告以純文字呈現，素材圖片不影響點擊勝率推算。");
+      } else if (hasImgA || hasImgB) {
+        imgSection.classList.remove('hidden');
+        renderImageComparison(hasImgA, hasImgB);
+      } else {
+        imgSection.classList.add('hidden');
+      }
+
+      const winnerBanner = document.getElementById('winnerBanner');
+      let winnerText = "勢均力敵";
+      let winnerRate = 50;
+
+      if (isTie) {
+        winnerBanner.className = "p-6 md:p-7 rounded-md border border-[#d5cec5] bg-[#faf8f5] text-center shadow-xs";
+        winnerBanner.innerHTML = `
+          <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ede8e1] text-[#5a544e] rounded-md text-xs font-semibold mb-3">
+            <i class="ph-bold ph-scales"></i> 兩組評分平手 (Tie)
+          </div>
+          <h2 class="text-xl md:text-2xl font-bold text-[#2d2a27]">在【${platSpec.name}】上兩組素材預測效能相近 (A: ${winRateA}% vs B: ${winRateB}%)</h2>
+          <p class="text-[#706b65] text-sm mt-2 max-w-xl mx-auto">
+            ${currentTestMode === 'image_diff' ? '兩張圖片在色彩穿透力與焦點引導上勢均力敵，建議調整主體光影對比或增加留白。' : '兩組文案在吸睛力與行動阻力上勢均力敵，建議在首句加入更具體的情境數字或強烈問題反差。'}
+          </p>
+        `;
+      } else {
+        const winnerTag = isWinnerA 
+          ? (currentTestMode === 'image_diff' ? "素材圖片 A" : "文案 A (對照組)")
+          : (currentTestMode === 'image_diff' ? "素材圖片 B" : "文案 B (實驗組)");
+        winnerText = isWinnerA ? "版本 A" : "版本 B";
+        winnerRate = isWinnerA ? winRateA : winRateB;
+
+        const modeBadgeText = currentTestMode === 'copy_diff' 
+          ? "文案不同 · 圖片相同 (單變因測試)" 
+          : "圖片不同 · 文案相同 (單變因測試)";
+
+        winnerBanner.className = `p-6 md:p-7 rounded-md border ${isWinnerA ? 'border-[#cbd5dc] bg-[#f0f4f7]' : 'border-[#ded0c0] bg-[#f7f2eb]'}`;
+        winnerBanner.innerHTML = `
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#edf2ee] text-[#4d6653] border border-[#cad6cd] rounded-md text-xs font-bold mb-3">
+                <i class="ph-bold ph-trophy text-[#5d7c65]"></i> ${platSpec.name} · ${modeBadgeText} 推薦首選
+              </div>
+              <h2 class="text-2xl md:text-3xl font-extrabold text-[#2d2a27] flex items-center gap-2">
+                推薦優先投放：${winnerTag}
+              </h2>
+              <p class="text-[#5a544e] text-sm mt-2 max-w-xl leading-relaxed">
+                ${currentTestMode === 'image_diff' 
+                  ? `在<strong>文案完全受控相同</strong>的前提下，<strong>${winnerTag}</strong> 的色彩飽和度、主體光影對比與小螢幕焦點辨識顯著更優，預估相對點擊增長：` 
+                  : `在<strong>圖片完全受控相同</strong>的前提下，<strong>${winnerTag}</strong> 展現了更低的認知摩擦力與更高的痛點呼喚力，預估相對 CTR 增長：`}
+                <span class="text-[#435948] font-bold text-base bg-[#e2ebe4] px-2 py-0.5 rounded-md">+${estimatedCtrLift}% CTR</span>
+              </p>
+            </div>
+            
+            <div class="bg-[#faf8f5] border border-[#d5cec5] px-8 py-5 rounded-md text-center min-w-[160px] shadow-xs">
+              <div class="text-xs text-[#8c857d] font-semibold tracking-wider">${platSpec.name} 預估勝率</div>
+              <div class="text-4xl font-black ${isWinnerA ? 'text-[#556975]' : 'text-[#846648]'} mt-1">
+                ${winnerRate}%
+              </div>
+              <div class="text-[11px] text-[#706b65] font-medium mt-1">A: ${winRateA}% / B: ${winRateB}%</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 維度細項
+      const dimLabels = {
+        hook: { name: "3秒拇指吸睛度 (Hook Strength)", desc: "首句衝突性、提問句與破除盲點力道" },
+        pain: { name: "受眾痛點切身度 (Pain Resonance)", desc: "第二人稱「你」呼喚與困境共鳴感" },
+        clarity: { name: "認知流暢度 (Cognitive Ease)", desc: "掃除假大空宣傳詞、親民好吸收" },
+        curiosity: { name: "好奇心缺口 (Curiosity Gap)", desc: "創造資訊增益期待感、解密心理" },
+        cta: { name: "行動按鈕摩擦力 (CTA Friction)", desc: "獲取成本輕盈感 vs 沉重心理承諾負擔" },
+        platformFit: { name: "投放平台格式契合度", desc: "符合該版位的原生閱讀節奏與字數規範" }
+      };
+
+      const dimContainer = document.getElementById('dimensionsList');
+      dimContainer.innerHTML = Object.keys(dimLabels).map(key => {
+        let valA = resA.dims[key] || 0;
+        let valB = resB.dims[key] || 0;
+
+        if (key === 'hook' && hasImgA) valA = Math.round(valA * 0.7 + imageMetrics.A.visualScore * 0.3);
+        if (key === 'hook' && hasImgB) valB = Math.round(valB * 0.7 + imageMetrics.B.visualScore * 0.3);
+
+        return `
+          <div class="bg-[#f4f1ea]/80 p-4 rounded-md border border-[#dcd6cd] space-y-2.5">
+            <div class="flex flex-col sm:flex-row justify-between sm:items-center text-xs gap-1">
+              <span class="font-bold text-[#2d2a27]">${dimLabels[key].name}</span>
+              <span class="text-[#706b65] text-[11px]">${dimLabels[key].desc}</span>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4 items-center pt-1">
+              <div>
+                <div class="flex justify-between text-[11px] mb-1 font-semibold text-[#556975]">
+                  <span>文案 A</span>
+                  <span>${valA} 分</span>
+                </div>
+                <div class="w-full bg-[#ded9cf] rounded-xs h-2 overflow-hidden">
+                  <div class="bg-[#6b7f8c] h-2 rounded-xs transition-all duration-700 ease-out" style="width: ${valA}%"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-[11px] mb-1 font-semibold text-[#846648]">
+                  <span>文案 B</span>
+                  <span>${valB} 分</span>
+                </div>
+                <div class="w-full bg-[#ded9cf] rounded-xs h-2 overflow-hidden">
+                  <div class="bg-[#a8825c] h-2 rounded-xs transition-all duration-700 ease-out" style="width: ${valB}%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 建議列表
+      const listA = document.getElementById('feedbackA');
+      const notesA = [...resA.notes];
+      if (hasImgA) {
+        if (imageMetrics.A.visualScore >= 75) {
+          notesA.unshift(`【主視覺亮點】素材 A 色彩飽和與構圖對比優秀 (${imageMetrics.A.visualScore}分)。`);
+        } else {
+          notesA.push(`【視覺建議】素材 A 對比或飽和度偏低 (${imageMetrics.A.visualScore}分)。`);
+        }
+      }
+      listA.innerHTML = (notesA.length ? notesA : ["表現持平，建議在首句加強生活化對比，減少官腔詞彙以降低受眾抗性。"]).map(n => `
+        <li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-[#6b7f8c] text-sm mt-0.5 shrink-0"></i> <span>${n}</span></li>
+      `).join('');
+
+      const listB = document.getElementById('feedbackB');
+      const notesB = [...resB.notes];
+      if (hasImgB) {
+        if (imageMetrics.B.visualScore >= 75) {
+          notesB.unshift(`【主視覺亮點】素材 B 具備強烈吸引力 (${imageMetrics.B.visualScore}分)。`);
+        } else {
+          notesB.push(`【視覺建議】素材 B 畫面細節稍雜或留白不足 (${imageMetrics.B.visualScore}分)。`);
+        }
+      }
+      listB.innerHTML = (notesB.length ? notesB : ["表現持平，建議在行動呼籲上提供更具體且低門檻的誘因以放大轉換。"]).map(n => `
+        <li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-[#a8825c] text-sm mt-0.5 shrink-0"></i> <span>${n}</span></li>
+      `).join('');
+
+      lastAnalysisReport = {
+        winner: winnerText,
+        winRate: winnerRate,
+        lift: estimatedCtrLift,
+        scoreA: finalScoreA,
+        scoreB: finalScoreB,
+        platformText: platformEl.options[platformEl.selectedIndex].text,
+        hasImages: hasImgA || hasImgB
+      };
+
+      if (saveToRecord && (titleA || titleB || hasImgA || hasImgB)) {
+        const historyRecord = {
+          id: 'rec_' + Date.now(),
+          date: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+          platform: platformEl.options[platformEl.selectedIndex].text.split(' ')[0],
+          platformValue: platform,
+          audienceValue: audience,
+          goalValue: goal,
+          titleA: titleA,
+          bodyA: bodyA,
+          ctaA: ctaA,
+          titleB: titleB,
+          bodyB: bodyB,
+          ctaB: ctaB,
+          winner: winnerText,
+          winRate: winnerRate,
+          lift: estimatedCtrLift
+        };
+        saveHistoryItem(historyRecord);
+        showToast("已完成推算並保存至歷史紀錄！");
+      }
+    }
+
+    function renderImageComparison(hasImgA, hasImgB, extraNote = "") {
+      const badge = document.getElementById('imageWinnerBadge');
+      
+      if (extraNote) {
+        badge.textContent = "Google 搜尋廣告僅採計純文字";
+        badge.className = "px-3.5 py-1.5 bg-[#ede8e1] text-[#5a544e] border border-[#d5cec5] rounded-md text-xs font-semibold shadow-xs";
+      } else if (hasImgA && hasImgB) {
+        const scoreA = imageMetrics.A.visualScore;
+        const scoreB = imageMetrics.B.visualScore;
+        if (scoreA > scoreB) {
+          badge.textContent = `視覺首選：素材 A (高出 ${scoreA - scoreB} 分)`;
+          badge.className = "px-3.5 py-1.5 bg-[#edf2f5] text-[#556975] border border-[#cbd5dc] rounded-md text-xs font-bold shadow-xs";
+        } else if (scoreB > scoreA) {
+          badge.textContent = `視覺首選：素材 B (高出 ${scoreB - scoreA} 分)`;
+          badge.className = "px-3.5 py-1.5 bg-[#f7efe4] text-[#846648] border border-[#ded0c0] rounded-md text-xs font-bold shadow-xs";
+        } else {
+          badge.textContent = "兩張素材視覺吸引力相當";
+          badge.className = "px-3.5 py-1.5 bg-[#ede8e1] text-[#5a544e] border border-[#d5cec5] rounded-md text-xs font-bold shadow-xs";
+        }
+      } else {
+        badge.textContent = hasImgA ? "已分析素材 A" : "已分析素材 B";
+        badge.className = "px-3.5 py-1.5 bg-[#ede8e1] text-[#5a544e] border border-[#d5cec5] rounded-md text-xs font-bold shadow-xs";
+      }
+
+      if (hasImgA) {
+        const mA = imageMetrics.A;
+        document.getElementById('imgThumbA').src = mA.dataUrl;
+        document.getElementById('imgScoreA').textContent = `${mA.visualScore} 分`;
+        document.getElementById('imgStatsA').innerHTML = `
+          <div>色彩飽和度：<span class="font-bold text-[#2d2a27]">${mA.avgSaturation}%</span></div>
+          <div>畫面明亮度：<span class="font-bold text-[#2d2a27]">${mA.avgBrightness}</span></div>
+          <div>畫面留白與簡約度：<span class="font-bold text-[#2d2a27]">${100 - mA.visualComplexity}%</span></div>
+        `;
+        document.getElementById('imgAdviceA').innerHTML = `
+          <strong>💡 視覺診斷：</strong>${mA.visualScore >= 75 ? '主體輪廓清晰、明暗對比強烈，在資訊流中能有效激發停頓反射。' : '畫面色彩稍顯平淡，建議微調曝光度與銳利度讓主體更顯眼。'}
+        `;
+      } else {
+        document.getElementById('imgThumbA').src = 'https://placehold.co/100x100/ede8e1/8c857d?text=無圖片';
+        document.getElementById('imgScoreA').textContent = '未上傳';
+        document.getElementById('imgStatsA').innerHTML = '<div class="text-[#8c857d]">尚未上傳素材 A 圖片</div>';
+        document.getElementById('imgAdviceA').textContent = '可上傳素材圖進行色彩與焦點辨識。';
+      }
+
+      if (hasImgB) {
+        const mB = imageMetrics.B;
+        document.getElementById('imgThumbB').src = mB.dataUrl;
+        document.getElementById('imgScoreB').textContent = `${mB.visualScore} 分`;
+        document.getElementById('imgStatsB').innerHTML = `
+          <div>色彩飽和度：<span class="font-bold text-[#2d2a27]">${mB.avgSaturation}%</span></div>
+          <div>畫面明亮度：<span class="font-bold text-[#2d2a27]">${mB.avgBrightness}</span></div>
+          <div>畫面留白與簡約度：<span class="font-bold text-[#2d2a27]">${100 - mB.visualComplexity}%</span></div>
+        `;
+        document.getElementById('imgAdviceB').innerHTML = `
+          <strong>💡 視覺診斷：</strong>${mB.visualScore >= 75 ? '色調對比極佳，主體醒目具備高度吸引力。' : '背景資訊量稍高，建議適度虛化背景或裁剪多餘留白。'}
+        `;
+      } else {
+        document.getElementById('imgThumbB').src = 'https://placehold.co/100x100/ede8e1/8c857d?text=無圖片';
+        document.getElementById('imgScoreB').textContent = '未上傳';
+        document.getElementById('imgStatsB').innerHTML = '<div class="text-[#8c857d]">尚未上傳素材 B 圖片</div>';
+        document.getElementById('imgAdviceB').textContent = '可上傳素材圖進行色彩與焦點辨識。';
+      }
+    }
+
+    function previewMockup(variant) {
+      const isA = variant === 'A';
+      const title = document.getElementById(isA ? 'titleA' : 'titleB').value.trim() || (isA ? '文案 A 主標題' : '文案 B 主標題');
+      const body = document.getElementById(isA ? 'bodyA' : 'bodyB').value.trim() || '（尚未填寫正文內容，請於輸入框內鍵入文案）';
+      const cta = document.getElementById(isA ? 'ctaA' : 'ctaB').value.trim() || '瞭解詳情';
+      const platformSelect = document.getElementById('platformSelect');
+      const platformText = platformSelect.options[platformSelect.selectedIndex].text;
+
+      document.getElementById('mockupPlatformTag').textContent = platformText;
+      document.getElementById('mockupBody').textContent = body;
+      document.getElementById('mockupImageTitle').textContent = title;
+      document.getElementById('mockupBottomTitle').textContent = title;
+      document.getElementById('mockupCtaBtn').textContent = cta;
+
+      const realImg = document.getElementById('mockupRealImage');
+      const placeholder = document.getElementById('mockupImagePlaceholder');
+      const uploaded = imageMetrics[variant];
+
+      if (uploaded && uploaded.dataUrl) {
+        realImg.src = uploaded.dataUrl;
+        realImg.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        realImg.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+      }
+
+      if (isA) {
+        document.getElementById('mockupCtaBtn').className = "shrink-0 px-3 py-1.5 bg-[#697a82] text-white rounded-md text-xs font-bold shadow-xs";
+      } else {
+        document.getElementById('mockupCtaBtn').className = "shrink-0 px-3 py-1.5 bg-[#a8825c] text-white rounded-md text-xs font-bold shadow-xs";
+      }
+
+      const modal = document.getElementById('mockupModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeMockupModal() {
+      const modal = document.getElementById('mockupModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function copyComparisonSummary() {
+      if (!lastAnalysisReport) {
+        showToast("尚未產生分析報告", false);
+        return;
+      }
+
+      const titleA = document.getElementById('titleA').value.trim() || '未命名文案 A';
+      const titleB = document.getElementById('titleB').value.trim() || '未命名文案 B';
+      const taSelect = document.getElementById('audienceSelect');
+      const taText = taSelect.options[taSelect.selectedIndex].text;
+
+      const summaryText = `【廣告 A/B 測試預測診斷摘要】
+• 投放平台：${lastAnalysisReport.platformText}
+• 目標受眾：${taText}
+• 對照組 A (${lastAnalysisReport.scoreA}分)：${titleA}
+• 實驗組 B (${lastAnalysisReport.scoreB}分)：${titleB}
+-----------------------------
+🏆 推薦版本：${lastAnalysisReport.winner} (預估勝率 ${lastAnalysisReport.winRate}%)
+📈 預估 CTR 增長：+${lastAnalysisReport.lift}%
+💡 結論：依據演算法與受眾心智模型，${lastAnalysisReport.winner} 在受眾指尖停頓與行動觸發上相對佔優。`;
+
+      const textarea = document.createElement("textarea");
+      textarea.value = summaryText;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+          showToast("已成功複製診斷摘要至剪貼簿！");
+        } else {
+          showToast("複製失敗，請手動複製", false);
+        }
+      } catch (err) {
+        showToast("複製失敗，請手動複製", false);
+      }
+      document.body.removeChild(textarea);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const elTitleA = document.getElementById('titleA');
+      const elBodyA = document.getElementById('bodyA');
+      const elCtaA = document.getElementById('ctaA');
+
+      if (elTitleA) elTitleA.addEventListener('input', onCopyAInput);
+      if (elBodyA) elBodyA.addEventListener('input', onCopyAInput);
+      if (elCtaA) elCtaA.addEventListener('input', onCopyAInput);
+
+      setTestMode('copy_diff');
+      updateHistoryUI();
+      updateCharCount();
+    });
+  </script>
+</body>
+</html>
