@@ -85,6 +85,9 @@
             <button type="button" onclick="loadPreset('budget')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
               <i class="ph ph-wallet text-[#a88a6d]"></i> 小資理財 App
             </button>
+            <button type="button" onclick="loadPreset('sunscreen')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
+              <i class="ph ph-sun text-[#c28e46]"></i> 安耐曬防曬 (Threads高對比)
+            </button>
             <button type="button" onclick="loadPreset('b2b')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
               <i class="ph ph-briefcase text-[#6b7f8c]"></i> B2B 團隊專案工具
             </button>
@@ -545,6 +548,17 @@
         bodyB: "你是不是也這樣：每天一杯手搖、通勤順手嗶卡，不知不覺 3,000 元就人間蒸發？別再花 15 分鐘手動對發票了。這款免動腦的自動記帳神器，3 秒抓出你的隱形漏水點，每個月無痛多存一趟出國機票錢。",
         ctaB: "免費領取省錢健檢工具 ➜",
         platform: "meta_feed",
+        audience: "young",
+        goal: "ctr"
+      },
+      sunscreen: {
+        titleA: "日本熱銷防曬首選！戶外防曬新升級，給肌膚全方位極致防護！",
+        bodyA: "本產品採用業界領先超防水耐汗耐摩擦科技，清爽不黏膩，致力於為大家打造水潤健康的透亮肌膚。無論登山海邊都能安心享受陽光，是夏季防曬的最佳選擇。",
+        ctaA: "立即前往官網選購",
+        titleB: "「去泰國 7 天，全團只有我的臉沒跟脖子分家。」",
+        bodyB: "朋友出發前笑我幹嘛買金鑽「那個很油啦」，結果到了第 3 天：他們擦水感防曬的全部曬傷脫皮、黑了兩個色號像斑馬；只有我每天在 38 度爆汗＋海島暴曬下，回台灣粉底色號完全不用換。真的不要拿平價水感去挑戰熱帶的太陽，痛過一次你就懂。防曬只有兩種：安耐曬，跟曬傷。",
+        ctaB: "留言「防曬」傳你免排隊的囤貨連結 ➜",
+        platform: "threads",
         audience: "young",
         goal: "ctr"
       },
@@ -1463,7 +1477,8 @@
 
       document.getElementById('resultsCard').classList.remove('hidden');
       document.getElementById('copySummaryBtn').classList.remove('hidden');
-const diff = Math.abs(finalScoreA - finalScoreB);
+
+      const diff = Math.abs(finalScoreA - finalScoreB);
       const isWinnerA = finalScoreA > finalScoreB;
       const isTie = diff <= 2;
 
