@@ -1463,16 +1463,22 @@
 
       document.getElementById('resultsCard').classList.remove('hidden');
       document.getElementById('copySummaryBtn').classList.remove('hidden');
-
-      const sum = (finalScoreA + finalScoreB) || 1;
-      const winRateA = Math.round((finalScoreA / sum) * 100);
-      const winRateB = 100 - winRateA;
-
-      const diff = Math.abs(finalScoreA - finalScoreB);
+const diff = Math.abs(finalScoreA - finalScoreB);
       const isWinnerA = finalScoreA > finalScoreB;
-      const isTie = finalScoreA === finalScoreB;
+      const isTie = diff <= 2;
 
-      const estimatedCtrLift = (diff * 0.76 + 4.1).toFixed(1);
+      // 使用指數勝率曲線：分數差距大時，勝率拉開至 75%~85% 以上
+      const probabilityA = 1 / (1 + Math.exp(-(finalScoreA - finalScoreB) * 0.08));
+      let winRateA = Math.round(probabilityA * 100);
+      winRateA = Math.max(10, Math.min(90, winRateA));
+      let winRateB = 100 - winRateA;
+
+      if (isTie) {
+        winRateA = 50;
+        winRateB = 50;
+      }
+
+      const estimatedCtrLift = (diff * 0.85 + 4.5).toFixed(1);
 
       document.getElementById('scoreBadgeA').textContent = `${finalScoreA} 分`;
       document.getElementById('scoreBadgeB').textContent = `${finalScoreB} 分`;
