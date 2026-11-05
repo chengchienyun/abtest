@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>廣告文案 A/B 測試預測推算器</title>
+  <title>廣告 A/B 測試預測評估器</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Phosphor Icons -->
@@ -64,10 +64,10 @@
           文案語意與受眾心理演算法模型 v2.0
         </div>
         <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-[#2d2a27] flex items-center gap-2">
-          廣告文案 A/B 測試預測評估器
+          廣告 A/B 測試預測評估器
         </h1>
         <p class="text-[#706b65] text-sm mt-1">
-          免盲目手動推測；系統透過「吸睛鉤子、痛點切身、認知阻力、好奇缺口、行動門檻」推算相對預期 CTR 與轉換勝率。
+          科學控制單一變因：透過受眾心理抗拒、指尖停頓吸睛力與行動門檻推算相對預期 CTR 與轉換勝率。
         </p>
       </div>
 
@@ -81,12 +81,12 @@
             <i class="ph ph-sparkle text-[#847869]"></i> 載入範例
             <i class="ph ph-caret-down text-[10px]"></i>
           </button>
-          <div id="presetMenu" class="hidden absolute right-0 mt-2 w-48 rounded-md shadow-md bg-[#faf8f5] border border-[#d5cec5] py-1.5 z-30 text-xs">
-            <button type="button" onclick="loadPreset('budget')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
-              <i class="ph ph-wallet text-[#a88a6d]"></i> 小資理財 App
+          <div id="presetMenu" class="hidden absolute right-0 mt-2 w-56 rounded-md shadow-md bg-[#faf8f5] border border-[#d5cec5] py-1.5 z-30 text-xs">
+            <button type="button" onclick="loadPreset('sunscreen')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2 font-bold text-[#a8825c]">
+              <i class="ph-bold ph-sun text-[#a8825c]"></i> 安耐曬防曬
             </button>
-            <button type="button" onclick="loadPreset('sunscreen')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
-              <i class="ph ph-sun text-[#c28e46]"></i> 安耐曬防曬 (Threads高對比)
+            <button type="button" onclick="loadPreset('budget')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
+              <i class="ph ph-wallet text-[#a88a6d]"></i> 小資理財 App 
             </button>
             <button type="button" onclick="loadPreset('b2b')" class="w-full text-left px-4 py-2 hover:bg-[#ede8e1] text-[#4d4741] flex items-center gap-2">
               <i class="ph ph-briefcase text-[#6b7f8c]"></i> B2B 團隊專案工具
@@ -112,7 +112,7 @@
         <select id="platformSelect" onchange="runAnalysis(false, false)" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium">
           <option value="meta_feed">Meta 資訊流 (FB / IG 貼文)</option>
           <option value="ig_story">IG 限時動態 / Reels 短影音</option>
-          <option value="threads">Threads 脆文社群廣告</option>
+          <option value="threads">Threads 社群廣告</option>
           <option value="google_search">Google 關鍵字搜尋廣告</option>
           <option value="line_voom">LINE 官方帳號 / VOOM 訊息</option>
         </select>
@@ -142,64 +142,140 @@
       </div>
     </section>
 
-    <!-- A/B 測試模式切換列 (單一變因控制) -->
+    <!-- 模式切換器 (純文案模式 vs 純圖片模式) -->
     <div class="bg-[#faf8f5] border border-[#dcd6cd] rounded-md p-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <div class="flex items-center gap-2">
         <span class="w-6 h-6 rounded-md bg-[#ede8e1] text-[#697a82] flex items-center justify-center text-xs font-bold shrink-0">
           <i class="ph-bold ph-sliders-horizontal"></i>
         </span>
         <div>
-          <span class="text-xs font-bold text-[#2d2a27]">嚴格 A/B 測試單一變因控制</span>
-          <span class="text-[11px] text-[#706b65] block sm:inline sm:ml-2" id="modeDescriptionText">【模式 1】鎖定圖片完全相同，專注驗證文案 A vs B 的受眾共鳴與點擊率差異。</span>
+          <span class="text-xs font-bold text-[#2d2a27]">測試模式切換</span>
+          <span class="text-[11px] text-[#706b65] block sm:inline sm:ml-2" id="modeDescriptionText">【模式 1：文案模式】純粹比對文案 A vs B。</span>
         </div>
       </div>
       <div class="flex items-center bg-[#ede8e1] p-1 rounded-md border border-[#d5cec5] gap-1 shrink-0">
-        <button type="button" id="modeBtn_copy" onclick="setTestMode('copy_diff')" class="px-3 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs">
-          <i class="ph-bold ph-text-aa text-[#6b7f8c]"></i> 1. 文案不同 · 圖片相同
+        <button type="button" id="modeBtn_copy" onclick="setTestMode('copy_diff')" class="px-3.5 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs">
+          <i class="ph-bold ph-text-aa text-[#6b7f8c]"></i> 1. 文案模式 (純比文案)
         </button>
-        <button type="button" id="modeBtn_image" onclick="setTestMode('image_diff')" class="px-3 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5">
-          <i class="ph-bold ph-image text-[#a8825c]"></i> 2. 圖片不同 · 文案相同
+        <button type="button" id="modeBtn_image" onclick="setTestMode('image_diff')" class="px-3.5 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5">
+          <i class="ph-bold ph-image text-[#a8825c]"></i> 2. 圖片模式 (純比素材)
         </button>
       </div>
     </div>
 
-    <!-- 文案輸入區塊 (並排) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      
-      <!-- 對照組 • 文案 A (莫蘭迪灰霧藍調) -->
-      <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-5 shadow-xs flex flex-col justify-between relative group hover:border-[#98aab4] transition">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#edf2f5] text-[#556975] border border-[#cbd5dc] rounded-md text-xs font-bold tracking-wider">
-              <span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 對照組 • 文案 A
-            </span>
-            <span id="charCountA" class="text-xs font-medium text-[#8c857d]">0 字</span>
+    <!-- ================= 模式 1：文案 A/B 測試模式 (純文案比對，無圖片干擾) ================= -->
+    <div id="copyModeContainer" class="space-y-4">
+      <!-- 雙欄文案輸入 (並排比對) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 文案 A -->
+        <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-5 shadow-xs flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#edf2f5] text-[#556975] border border-[#cbd5dc] rounded-md text-xs font-bold tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 對照組 • 文案 A
+              </span>
+              <span id="charCountA" class="text-xs font-medium text-[#8c857d]">0 字</span>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
+                <span class="text-[10px] text-[#8c857d]">建議 15~35 字為佳</span>
+              </div>
+              <input type="text" id="titleA" placeholder="例：全方位智能記帳工具，讓你輕鬆掌握每筆開銷！" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="updateCharCount()">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
+                <span class="text-[10px] text-[#8c857d]">超過 120 字將面臨折疊</span>
+              </div>
+              <textarea id="bodyA" rows="5" placeholder="輸入文案詳細描述、產品特色與切身場景..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition resize-none leading-relaxed" oninput="updateCharCount()"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
+              <input type="text" id="ctaA" placeholder="例：立即註冊體驗" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="updateCharCount()">
+            </div>
           </div>
 
-          <!-- 廣告圖片上傳與辨識區域 A -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c] flex items-center gap-1">
-                <i class="ph-bold ph-image text-[#6b7f8c]"></i> 主視覺圖片上傳 (選填)
-                <span id="imgLockBadgeA" class="text-[10px] text-[#556975] bg-[#e3ebf0] px-1.5 py-0.5 rounded-xs font-normal">共用主圖</span>
-              </label>
-              <button type="button" id="removeImgBtnA" onclick="clearImage('A')" class="text-[10px] text-[#a45e54] hover:underline hidden">移除圖片</button>
+          <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+            <span>對照基準版本</span>
+            <button type="button" onclick="previewMockup('A')" class="text-[#556975] hover:text-[#384852] font-semibold flex items-center gap-1">
+              <i class="ph ph-eye"></i> 手機樣機預覽
+            </button>
+          </div>
+        </div>
+
+        <!-- 文案 B -->
+        <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-5 shadow-xs flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f7efe4] text-[#846648] border border-[#ded0c0] rounded-md text-xs font-bold tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 實驗組 • 文案 B
+              </span>
+              <span id="charCountB" class="text-xs font-medium text-[#8c857d]">0 字</span>
             </div>
-            
-            <div id="dropzoneA" onclick="document.getElementById('fileInputA').click()" class="border border-dashed border-[#c5cdd3] hover:border-[#8397a4] bg-[#f5f8fa]/60 hover:bg-[#edf2f5]/50 rounded-md p-3 text-center cursor-pointer transition relative group overflow-hidden">
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
+                <span class="text-[10px] text-[#8c857d]">創造反差或疑問</span>
+              </div>
+              <input type="text" id="titleB" placeholder="例：「明明沒買奢侈品，月底戶頭怎麼又空了？」" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
+                <span class="text-[10px] text-[#8c857d]">多用「你」、具體數字</span>
+              </div>
+              <textarea id="bodyB" rows="5" placeholder="輸入文案 B 詳細描述，直擊心理盲區與具體解答..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition resize-none leading-relaxed" oninput="updateCharCount()"></textarea>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
+              <input type="text" id="ctaB" placeholder="例：免費領取省錢健檢工具 ➜" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
+            </div>
+          </div>
+
+          <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+            <span>心理學假設優化版</span>
+            <button type="button" onclick="previewMockup('B')" class="text-[#846648] hover:text-[#5f462e] font-semibold flex items-center gap-1">
+              <i class="ph ph-eye"></i> 手機樣機預覽
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= 模式 2：圖片素材 A/B 測試模式 ================= -->
+    <div id="imageModeContainer" class="hidden space-y-4">
+      <!-- 雙欄圖片上傳 (並排比對) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 圖片素材 A -->
+        <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-5 shadow-xs flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#edf2f5] text-[#556975] border border-[#cbd5dc] rounded-md text-xs font-bold tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 素材圖片 A (對照素材)
+              </span>
+              <button type="button" id="removeImgBtnA" onclick="clearImage('A')" class="text-[11px] text-[#a45e54] hover:underline hidden">移除圖片</button>
+            </div>
+
+            <div id="dropzoneA" onclick="document.getElementById('fileInputA').click()" class="border-2 border-dashed border-[#c5cdd3] hover:border-[#8397a4] bg-[#f5f8fa]/60 hover:bg-[#edf2f5]/50 rounded-md p-6 text-center cursor-pointer transition relative group overflow-hidden">
               <input type="file" id="fileInputA" accept="image/*" class="hidden" onchange="handleImageUpload('A', event)">
               
-              <div id="uploadPromptA" class="py-3 flex flex-col items-center justify-center gap-1">
-                <i class="ph-duotone ph-cloud-arrow-up text-2xl text-[#6b7f8c]"></i>
-                <span class="text-xs font-semibold text-[#45413c]">點擊或拖曳上傳素材 A</span>
-                <span class="text-[10px] text-[#8c857d]">支援 JPG、PNG、WebP (將自動辨識視覺吸睛力)</span>
+              <div id="uploadPromptA" class="py-8 flex flex-col items-center justify-center gap-2">
+                <i class="ph-duotone ph-cloud-arrow-up text-4xl text-[#6b7f8c]"></i>
+                <span class="text-sm font-bold text-[#45413c]">點擊或拖曳上傳素材 A</span>
+                <span class="text-xs text-[#8c857d]">支援 JPG、PNG、WebP 高清圖檔</span>
               </div>
 
-              <!-- 圖片預覽與辨識標籤 -->
               <div id="imgPreviewWrapperA" class="hidden relative">
-                <img id="imgPreviewA" class="w-full h-36 object-cover rounded-md border border-[#cbd5dc]" alt="素材 A 預覽">
-                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-2.5 py-1.5 rounded-md text-[10px] flex items-center justify-between">
-                  <span id="imgMetricsTagA" class="flex items-center gap-1 font-mono">
+                <img id="imgPreviewA" class="w-full h-56 object-cover rounded-md border border-[#cbd5dc]" alt="素材 A 預覽">
+                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-3 py-2 rounded-md text-xs flex items-center justify-between">
+                  <span id="imgMetricsTagA" class="flex items-center gap-1 font-mono font-bold">
                     <i class="ph-bold ph-sparkle text-[#d9c4aa]"></i> 分析中...
                   </span>
                   <span class="text-[#c7bfb5]">點擊更換</span>
@@ -209,116 +285,52 @@
             <canvas id="canvasA" class="hidden"></canvas>
           </div>
 
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
-              <span class="text-[10px] text-[#8c857d]">建議 15~35 字為佳</span>
-            </div>
-            <input type="text" id="titleA" placeholder="例：全方位智能記帳工具，讓你輕鬆掌握每筆開銷！" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="onCopyAInput()">
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
-              <span class="text-[10px] text-[#8c857d]">超過 120 字將面臨折疊</span>
-            </div>
-            <textarea id="bodyA" rows="4" placeholder="輸入文案詳細描述、產品特色與切身場景..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition resize-none leading-relaxed" oninput="onCopyAInput()"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
-            <input type="text" id="ctaA" placeholder="例：立即註冊體驗" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#8c9ba5] focus:border-[#8c9ba5] transition font-medium" oninput="onCopyAInput()">
+          <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+            <span>對照組視覺素材</span>
+            <button type="button" onclick="previewMockup('A')" class="text-[#556975] hover:text-[#384852] font-semibold flex items-center gap-1">
+              <i class="ph ph-eye"></i> 手機樣機預覽
+            </button>
           </div>
         </div>
 
-        <!-- 快速預覽膠囊 -->
-        <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
-          <span>對照基準版本</span>
-          <button type="button" onclick="previewMockup('A')" class="text-[#556975] hover:text-[#384852] font-semibold flex items-center gap-1">
-            <i class="ph ph-eye"></i> 手機樣機預覽
-          </button>
-        </div>
-      </div>
-
-      <!-- 實驗組 • 文案 B (莫蘭迪陶土杏褐調) -->
-      <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-5 shadow-xs flex flex-col justify-between relative group hover:border-[#bda892] transition">
-        <div class="space-y-4">
-          <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f7efe4] text-[#846648] border border-[#ded0c0] rounded-md text-xs font-bold tracking-wider">
-              <span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 實驗組 • 文案 B
-            </span>
-            <span id="charCountB" class="text-xs font-medium text-[#8c857d]">0 字</span>
-          </div>
-
-          <!-- 廣告圖片上傳與辨識區域 B -->
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c] flex items-center gap-1">
-                <i class="ph-bold ph-image text-[#a8825c]"></i> 主視覺圖片上傳 (選填)
-                <span id="imgLockBadgeB" class="text-[10px] text-[#697a82] bg-[#ede8e1] px-1.5 py-0.5 rounded-xs font-normal">已自動同步素材 A</span>
-              </label>
-              <button type="button" id="removeImgBtnB" onclick="clearImage('B')" class="text-[10px] text-[#a45e54] hover:underline hidden">移除圖片</button>
+        <!-- 圖片素材 B -->
+        <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-5 shadow-xs flex flex-col justify-between">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pb-1 border-b border-[#e9e4dc]">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#f7efe4] text-[#846648] border border-[#ded0c0] rounded-md text-xs font-bold tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 素材圖片 B (測試素材)
+              </span>
+              <button type="button" id="removeImgBtnB" onclick="clearImage('B')" class="text-[11px] text-[#a45e54] hover:underline hidden">移除圖片</button>
             </div>
-            
-            <div id="dropzoneB" onclick="triggerDropzoneB()" class="border border-dashed border-[#dfd2c4] hover:border-[#a8825c] bg-[#faf5ee]/60 hover:bg-[#f7efe4]/50 rounded-md p-3 text-center cursor-pointer transition relative group overflow-hidden">
+
+            <div id="dropzoneB" onclick="document.getElementById('fileInputB').click()" class="border-2 border-dashed border-[#dfd2c4] hover:border-[#a8825c] bg-[#faf5ee]/60 hover:bg-[#f7efe4]/50 rounded-md p-6 text-center cursor-pointer transition relative group overflow-hidden">
               <input type="file" id="fileInputB" accept="image/*" class="hidden" onchange="handleImageUpload('B', event)">
               
-              <div id="uploadPromptB" class="py-3 flex flex-col items-center justify-center gap-1">
-                <i class="ph-duotone ph-cloud-arrow-up text-2xl text-[#a8825c]"></i>
-                <span class="text-xs font-semibold text-[#45413c]">點擊或拖曳上傳素材 B</span>
-                <span class="text-[10px] text-[#8c857d]">支援 JPG、PNG、WebP (將自動辨識視覺吸睛力)</span>
+              <div id="uploadPromptB" class="py-8 flex flex-col items-center justify-center gap-2">
+                <i class="ph-duotone ph-cloud-arrow-up text-4xl text-[#a8825c]"></i>
+                <span class="text-sm font-bold text-[#45413c]">點擊或拖曳上傳素材 B</span>
+                <span class="text-xs text-[#8c857d]">支援 JPG、PNG、WebP 高清圖檔</span>
               </div>
 
-              <!-- 圖片預覽與辨識標籤 -->
               <div id="imgPreviewWrapperB" class="hidden relative">
-                <img id="imgPreviewB" class="w-full h-36 object-cover rounded-md border border-[#ded0c0]" alt="素材 B 預覽">
-                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-2.5 py-1.5 rounded-md text-[10px] flex items-center justify-between">
-                  <span id="imgMetricsTagB" class="flex items-center gap-1 font-mono">
+                <img id="imgPreviewB" class="w-full h-56 object-cover rounded-md border border-[#ded0c0]" alt="素材 B 預覽">
+                <div class="absolute bottom-2 left-2 right-2 bg-[#2d2a27]/85 backdrop-blur-xs text-[#faf8f5] px-3 py-2 rounded-md text-xs flex items-center justify-between">
+                  <span id="imgMetricsTagB" class="flex items-center gap-1 font-mono font-bold">
                     <i class="ph-bold ph-sparkle text-[#d9c4aa]"></i> 分析中...
                   </span>
-                  <span class="text-[#c7bfb5]" id="imgChangeTagB">點擊更換</span>
+                  <span class="text-[#c7bfb5]">點擊更換</span>
                 </div>
               </div>
             </div>
             <canvas id="canvasB" class="hidden"></canvas>
           </div>
 
-          <!-- B 文案同調提示 (僅在模式二顯示) -->
-          <div id="copySyncNoticeB" class="hidden p-2.5 bg-[#ede8e1] border border-[#d5cec5] rounded-md text-[11px] text-[#5a544e] flex items-center justify-between">
-            <span class="flex items-center gap-1.5">
-              <i class="ph-bold ph-link text-[#697a82]"></i> 已鎖定與文案 A 相同 (單純比對兩張圖片差異)
-            </span>
-            <button type="button" onclick="syncCopyAToB(true)" class="text-[10px] font-bold text-[#697a82] hover:underline">強制重整同調</button>
+          <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
+            <span>實驗組視覺素材</span>
+            <button type="button" onclick="previewMockup('B')" class="text-[#846648] hover:text-[#5f462e] font-semibold flex items-center gap-1">
+              <i class="ph ph-eye"></i> 手機樣機預覽
+            </button>
           </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c]">主標題 / 首句 Hook</label>
-              <span class="text-[10px] text-[#8c857d]">創造反差或疑問</span>
-            </div>
-            <input type="text" id="titleB" placeholder="例：「明明沒買奢侈品，月底戶頭怎麼又空了？」" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
-          </div>
-
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-xs font-bold text-[#45413c]">正文內容 / 痛點與情境描述</label>
-              <span class="text-[10px] text-[#8c857d]">多用「你」、具體數字</span>
-            </div>
-            <textarea id="bodyB" rows="4" placeholder="輸入文案 B 詳細描述，直擊心理盲區與具體解答..." class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md p-3.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition resize-none leading-relaxed" oninput="updateCharCount()"></textarea>
-          </div>
-
-          <div>
-            <label class="block text-xs font-bold text-[#45413c] mb-1">行動呼籲按鈕 (CTA 按鈕字樣)</label>
-            <input type="text" id="ctaB" placeholder="例：免費領取省錢健檢工具 ➜" class="w-full bg-[#f4f1ea] border border-[#d5cec5] rounded-md px-3.5 py-2.5 text-sm text-[#3d3a37] placeholder-[#a69e94] focus:bg-[#faf8f5] focus:outline-none focus:ring-1 focus:ring-[#bda892] focus:border-[#bda892] transition font-medium" oninput="updateCharCount()">
-          </div>
-        </div>
-
-        <!-- 快速預覽膠囊 -->
-        <div class="mt-4 pt-3 border-t border-[#e9e4dc] flex items-center justify-between text-[11px] text-[#8c857d]">
-          <span>心理學假設優化版</span>
-          <button type="button" onclick="previewMockup('B')" class="text-[#846648] hover:text-[#5f462e] font-semibold flex items-center gap-1">
-            <i class="ph ph-eye"></i> 手機樣機預覽
-          </button>
         </div>
       </div>
     </div>
@@ -411,8 +423,8 @@
             <p class="text-xs text-[#706b65] mt-0.5">點數越高代表該項指標受眾心理抗拒越低、引導效果越好</p>
           </div>
           <div class="flex items-center gap-4 text-xs font-semibold">
-            <span class="flex items-center gap-1.5 text-[#556975]"><span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 文案 A</span>
-            <span class="flex items-center gap-1.5 text-[#846648]"><span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 文案 B</span>
+            <span class="flex items-center gap-1.5 text-[#556975]"><span class="w-2 h-2 rounded-full bg-[#6b7f8c]"></span> 版本 A</span>
+            <span class="flex items-center gap-1.5 text-[#846648]"><span class="w-2 h-2 rounded-full bg-[#a8825c]"></span> 版本 B</span>
           </div>
         </div>
         
@@ -423,22 +435,22 @@
 
       <!-- 具體優化戰術與策略診斷 -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- 文案 A 診斷 -->
+        <!-- 版本 A 診斷 -->
         <div class="bg-[#faf8f5] border border-[#cbd5dc] rounded-md p-6 shadow-xs">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2 text-[#556975] font-bold text-sm">
-              <i class="ph-bold ph-stethoscope text-lg"></i> 文案 A 語意診斷報告
+              <i class="ph-bold ph-stethoscope text-lg"></i> 版本 A 評估診斷報告
             </div>
             <span class="text-xs px-2.5 py-0.5 bg-[#edf2f5] text-[#556975] font-mono font-bold rounded-md" id="scoreBadgeA">0 分</span>
           </div>
           <ul id="feedbackA" class="space-y-2.5 text-xs text-[#5a544e] leading-relaxed"></ul>
         </div>
 
-        <!-- 文案 B 診斷 -->
+        <!-- 版本 B 診斷 -->
         <div class="bg-[#faf8f5] border border-[#ded0c0] rounded-md p-6 shadow-xs">
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-2 text-[#846648] font-bold text-sm">
-              <i class="ph-bold ph-stethoscope text-lg"></i> 文案 B 語意診斷報告
+              <i class="ph-bold ph-stethoscope text-lg"></i> 版本 B 評估診斷報告
             </div>
             <span class="text-xs px-2.5 py-0.5 bg-[#f7efe4] text-[#846648] font-mono font-bold rounded-md" id="scoreBadgeB">0 分</span>
           </div>
@@ -540,17 +552,6 @@
   <script>
     // 預設範例文案庫
     const PRESETS = {
-      budget: {
-        titleA: "全方位智能記帳工具，讓你輕鬆掌握每筆開銷！",
-        bodyA: "本產品採用業界領先的自動化分類技術，致力於為用戶提供極致流暢的財務管理體驗。功能齊全、介面直觀，是年輕小資族理財規劃的最佳首選。",
-        ctaA: "立即註冊體驗",
-        titleB: "「明明沒買奢侈品，月底戶頭怎麼又空了？」",
-        bodyB: "你是不是也這樣：每天一杯手搖、通勤順手嗶卡，不知不覺 3,000 元就人間蒸發？別再花 15 分鐘手動對發票了。這款免動腦的自動記帳神器，3 秒抓出你的隱形漏水點，每個月無痛多存一趟出國機票錢。",
-        ctaB: "免費領取省錢健檢工具 ➜",
-        platform: "meta_feed",
-        audience: "young",
-        goal: "ctr"
-      },
       sunscreen: {
         titleA: "日本熱銷防曬首選！戶外防曬新升級，給肌膚全方位極致防護！",
         bodyA: "本產品採用業界領先超防水耐汗耐摩擦科技，清爽不黏膩，致力於為大家打造水潤健康的透亮肌膚。無論登山海邊都能安心享受陽光，是夏季防曬的最佳選擇。",
@@ -559,6 +560,17 @@
         bodyB: "朋友出發前笑我幹嘛買金鑽「那個很油啦」，結果到了第 3 天：他們擦水感防曬的全部曬傷脫皮、黑了兩個色號像斑馬；只有我每天在 38 度爆汗＋海島暴曬下，回台灣粉底色號完全不用換。真的不要拿平價水感去挑戰熱帶的太陽，痛過一次你就懂。防曬只有兩種：安耐曬，跟曬傷。",
         ctaB: "留言「防曬」傳你免排隊的囤貨連結 ➜",
         platform: "threads",
+        audience: "young",
+        goal: "ctr"
+      },
+      budget: {
+        titleA: "全方位智能記帳工具，讓你輕鬆掌握每筆開銷！",
+        bodyA: "本產品採用業界領先的自動化分類技術，致力於為用戶提供極致流暢的財務管理體驗。功能齊全、介面直觀，是年輕小資族理財規劃的最佳首選。",
+        ctaA: "立即註冊體驗",
+        titleB: "「明明沒買奢侈品，月底戶頭怎麼又空了？」",
+        bodyB: "你是不是也這樣：每天一杯手搖、通勤順手嗶卡，不知不覺 3,000 元就人間蒸發？別再花 15 分鐘手動對發票了。這款免動腦的自動記帳神器，3 秒抓出你的隱形漏水點，每個月無痛多存一趟出國機票錢。",
+        ctaB: "免費領取省錢健檢工具 ➜",
+        platform: "meta_feed",
         audience: "young",
         goal: "ctr"
       },
@@ -588,9 +600,9 @@
 
     const LEXICON = {
       friction: ["全方位", "卓越", "致力於", "領導品牌", "無懈可擊", "頂級享受", "首選", "引領未來", "無微不至", "極致體驗", "本公司", "全新推出", "極致潤澤", "極致流暢"],
-      pain: ["卡關", "浪費", "白花", "痛點", "焦慮", "無效", "踩雷", "瞎猜", "沒時間", "卡在", "崩潰", "救星", "避坑", "熬夜", "虧錢", "漏水", "人間蒸發", "耗掉", "暗沉", "疲態", "垮"],
-      power: ["免費", "秘訣", "指南", "避坑", "清單", "模板", "公式", "實測", "3個", "10分鐘", "直接套用", "私藏", "真相", "解密", "神器", "無痛", "急救", "省下", "抓出"],
-      hasNumbers: /\d+(\%|折|萬|元|倍|個|天|秒|步|分|小時)/i,
+      pain: ["卡關", "浪費", "白花", "痛點", "焦慮", "無效", "踩雷", "瞎猜", "沒時間", "卡在", "崩潰", "救星", "避坑", "熬夜", "虧錢", "漏水", "人間蒸發", "耗掉", "暗沉", "疲態", "垮", "曬傷", "曬黑", "脫皮"],
+      power: ["免費", "秘訣", "指南", "避坑", "清單", "模板", "公式", "實測", "3個", "10分鐘", "直接套用", "私藏", "真相", "解密", "神器", "無痛", "急救", "省下", "抓出", "囤貨"],
+      hasNumbers: /\d+(\%|折|萬|元|倍|個|天|秒|步|分|小時|度)/i,
       hasQuestions: /[？\?]/,
       hasYou: /[你您]/
     };
@@ -598,7 +610,7 @@
     const AUDIENCE_MODELS = {
       young: {
         label: "年輕小資族",
-        favors: ["省錢", "CP值", "小資", "學生", "平價", "神器", "無痛", "月光", "手搖", "租屋", "自由", "輕鬆", "追劇", "打卡", "爆款", "免動腦"],
+        favors: ["省錢", "CP值", "小資", "學生", "平價", "神器", "無痛", "月光", "手搖", "租屋", "自由", "輕鬆", "追劇", "打卡", "爆款", "免動腦", "出國", "泰國"],
         avoids: ["企業級", "架構", "賦能", "跨部門", "宏觀", "深耕", "佈局"],
         styleWeight: { hook: 0.30, pain: 0.25, clarity: 0.15, curiosity: 0.15, cta: 0.15 },
         idealLength: 160,
@@ -648,7 +660,7 @@
         weights: { hook: 0.45, pain: 0.15, clarity: 0.15, curiosity: 0.10, cta: 0.15 }
       },
       threads: {
-        name: "Threads 脆文廣告",
+        name: "Threads 廣告",
         imgWeight: 0.15,
         copyWeight: 0.85,
         maxHeadlineLen: 45,
@@ -674,14 +686,14 @@
 
     const STORAGE_KEY = "AD_COPY_AB_HISTORY_LIGHT_V2";
     let lastAnalysisReport = null;
-    let currentTestMode = 'copy_diff'; // 僅允許 'copy_diff' 或 'image_diff'
+    let currentTestMode = 'copy_diff'; // 'copy_diff' (文案模式) 或 'image_diff' (圖片模式)
 
     const imageMetrics = {
       A: null,
       B: null
     };
 
-    // A/B 測試模式切換 (嚴格單一變因)
+    // A/B 測試模式切換 (模式 1：文案模式 / 模式 2：圖片模式)
     function setTestMode(mode) {
       if (mode !== 'copy_diff' && mode !== 'image_diff') {
         mode = 'copy_diff';
@@ -691,140 +703,37 @@
       const btnCopy = document.getElementById('modeBtn_copy');
       const btnImg = document.getElementById('modeBtn_image');
       const descText = document.getElementById('modeDescriptionText');
+      const copyContainer = document.getElementById('copyModeContainer');
+      const imgContainer = document.getElementById('imageModeContainer');
 
-      if (!btnCopy || !btnImg || !descText) return;
+      if (!btnCopy || !btnImg || !descText || !copyContainer || !imgContainer) return;
 
-      [btnCopy, btnImg].forEach(btn => {
-        btn.className = "px-3 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5";
-      });
-
-      const activeClass = "px-3 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs";
-
-      // 切換模式時立即清空所有內容與素材
+      // 切換模式時清空舊有輸入
       clearAll(false);
+
+      const activeClass = "px-3.5 py-1.5 rounded-xs text-xs font-bold transition flex items-center gap-1.5 bg-[#faf8f5] text-[#3d3a37] shadow-xs";
+      const inactiveClass = "px-3.5 py-1.5 rounded-xs text-xs font-medium text-[#706b65] hover:text-[#2d2a27] transition flex items-center gap-1.5";
 
       if (mode === 'copy_diff') {
         btnCopy.className = activeClass;
-        descText.textContent = "【模式 1】鎖定圖片完全相同，專注驗證文案 A vs B 的受眾共鳴與點擊率差異。";
-        applyCopyDiffMode();
+        btnImg.className = inactiveClass;
+        descText.textContent = "【模式 1：文案模式】純粹比對文案 A vs B。";
+        copyContainer.classList.remove('hidden');
+        imgContainer.classList.add('hidden');
+        showToast("已切換為：文案模式 (純比文案)");
       } else {
         btnImg.className = activeClass;
-        descText.textContent = "【模式 2】鎖定文案完全相同，專注驗證素材圖片 A vs B 的指尖停頓吸睛力與轉化差異。";
-        applyImageDiffMode();
+        btnCopy.className = inactiveClass;
+        descText.textContent = "【模式 2：圖片模式】純粹比對素材圖片 A vs B。";
+        imgContainer.classList.remove('hidden');
+        copyContainer.classList.add('hidden');
+        showToast("已切換為：圖片模式 (純比素材)");
       }
 
       runAnalysis(false, false);
     }
 
-    function applyCopyDiffMode() {
-      const lockA = document.getElementById('imgLockBadgeA');
-      const lockB = document.getElementById('imgLockBadgeB');
-      const copyNotice = document.getElementById('copySyncNoticeB');
-
-      if (lockA) lockA.classList.remove('hidden');
-      if (lockB) {
-        lockB.classList.remove('hidden');
-        lockB.textContent = "已自動同步素材 A";
-      }
-      if (copyNotice) copyNotice.classList.add('hidden');
-
-      setInputReadonly('titleB', false);
-      setInputReadonly('bodyB', false);
-      setInputReadonly('ctaB', false);
-
-      syncImageAToB();
-      showToast("已切換為：文案不同 · 圖片相同 (嚴格單變因)");
-    }
-
-    function applyImageDiffMode() {
-      const lockA = document.getElementById('imgLockBadgeA');
-      const lockB = document.getElementById('imgLockBadgeB');
-      const copyNotice = document.getElementById('copySyncNoticeB');
-
-      if (lockA) lockA.classList.add('hidden');
-      if (lockB) lockB.classList.add('hidden');
-      if (copyNotice) copyNotice.classList.remove('hidden');
-
-      syncCopyAToB(false);
-      setInputReadonly('titleB', true);
-      setInputReadonly('bodyB', true);
-      setInputReadonly('ctaB', true);
-
-      showToast("已切換為：圖片不同 · 文案相同 (嚴格單變因)");
-    }
-
-    function setInputReadonly(elementId, isReadonly) {
-      const el = document.getElementById(elementId);
-      if (!el) return;
-      el.readOnly = isReadonly;
-      if (isReadonly) {
-        el.classList.add('bg-[#ede8e1]/60', 'text-[#706b65]', 'cursor-not-allowed');
-      } else {
-        el.classList.remove('bg-[#ede8e1]/60', 'text-[#706b65]', 'cursor-not-allowed');
-      }
-    }
-
-    function syncCopyAToB(notify = false) {
-      const titleA = document.getElementById('titleA');
-      const bodyA = document.getElementById('bodyA');
-      const ctaA = document.getElementById('ctaA');
-      const titleB = document.getElementById('titleB');
-      const bodyB = document.getElementById('bodyB');
-      const ctaB = document.getElementById('ctaB');
-
-      if (!titleA || !titleB || !bodyA || !bodyB || !ctaA || !ctaB) return;
-
-      titleB.value = titleA.value;
-      bodyB.value = bodyA.value;
-      ctaB.value = ctaA.value;
-      updateCharCount();
-      if (notify) showToast("已將文案 A 內容同調至文案 B");
-    }
-
-    function syncImageAToB() {
-      if (currentTestMode !== 'copy_diff') return;
-
-      if (imageMetrics.A) {
-        imageMetrics.B = { ...imageMetrics.A };
-        const wrapperB = document.getElementById('imgPreviewWrapperB');
-        const uploadPromptB = document.getElementById('uploadPromptB');
-        const imgPreviewB = document.getElementById('imgPreviewB');
-        const removeBtnB = document.getElementById('removeImgBtnB');
-        const changeTagB = document.getElementById('imgChangeTagB');
-        const tagB = document.getElementById('imgMetricsTagB');
-
-        if (wrapperB) wrapperB.classList.remove('hidden');
-        if (uploadPromptB) uploadPromptB.classList.add('hidden');
-        if (imgPreviewB) imgPreviewB.src = imageMetrics.B.dataUrl;
-        if (removeBtnB) removeBtnB.classList.add('hidden');
-        if (changeTagB) changeTagB.textContent = "與 A 同步中";
-
-        const tagText = `同步素材 A (吸睛指數 ${imageMetrics.B.visualScore}分)`;
-        if (tagB) {
-          tagB.innerHTML = `<i class="ph-bold ph-link text-emerald-300"></i> ${tagText}`;
-        }
-      } else {
-        clearImage('B', false);
-      }
-    }
-
-    function triggerDropzoneB() {
-      if (currentTestMode === 'copy_diff') {
-        showToast("「文案不同 · 圖片相同」模式下，請直接上傳或更換素材 A，系統將自動同步至 B", false);
-        return;
-      }
-      const fileInputB = document.getElementById('fileInputB');
-      if (fileInputB) fileInputB.click();
-    }
-
-    function onCopyAInput() {
-      if (currentTestMode === 'image_diff') {
-        syncCopyAToB(false);
-      }
-      updateCharCount();
-    }
-
-    // 圖片上傳與分析
+    // 模式 2 雙圖上傳處理
     function handleImageUpload(variant, event) {
       const file = event.target.files && event.target.files[0];
       if (!file) return;
@@ -839,17 +748,32 @@
         const dataUrl = e.target.result;
         const img = new Image();
         img.onload = function() {
-          analyzeImageCanvas(variant, img, dataUrl);
+          const metrics = computeCanvasMetrics(`canvas${variant}`, img, dataUrl);
+          imageMetrics[variant] = metrics;
+
+          document.getElementById(`uploadPrompt${variant}`).classList.add('hidden');
+          const wrapper = document.getElementById(`imgPreviewWrapper${variant}`);
+          wrapper.classList.remove('hidden');
+          document.getElementById(`imgPreview${variant}`).src = dataUrl;
+          document.getElementById(`removeImgBtn${variant}`).classList.remove('hidden');
+
+          const tagText = `吸睛指數 ${metrics.visualScore}分 · 飽和度 ${metrics.avgSaturation}%`;
+          document.getElementById(`imgMetricsTag${variant}`).innerHTML = `
+            <i class="ph-bold ph-sparkle text-amber-300"></i> ${tagText}
+          `;
+
+          showToast(`已成功辨識素材 ${variant} 的視覺吸引力數據`);
+          runAnalysis(false, false);
         };
         img.src = dataUrl;
       };
       reader.readAsDataURL(file);
     }
 
-    function analyzeImageCanvas(variant, img, dataUrl) {
-      const canvas = document.getElementById(`canvas${variant}`);
+    // 共用像素色彩解析演算法
+    function computeCanvasMetrics(canvasId, img, dataUrl) {
+      const canvas = document.getElementById(canvasId);
       const ctx = canvas.getContext('2d');
-      
       const sampleW = 160;
       const sampleH = 160;
       canvas.width = sampleW;
@@ -911,7 +835,7 @@
 
       visualScore = Math.max(30, Math.min(98, visualScore));
 
-      imageMetrics[variant] = {
+      return {
         dataUrl,
         avgBrightness,
         avgSaturation,
@@ -919,25 +843,6 @@
         visualComplexity,
         visualScore
       };
-
-      document.getElementById(`uploadPrompt${variant}`).classList.add('hidden');
-      const wrapper = document.getElementById(`imgPreviewWrapper${variant}`);
-      wrapper.classList.remove('hidden');
-      document.getElementById(`imgPreview${variant}`).src = dataUrl;
-      document.getElementById(`removeImgBtn${variant}`).classList.remove('hidden');
-
-      const tagText = `吸睛指數 ${visualScore}分 · 飽和度 ${avgSaturation}%`;
-      document.getElementById(`imgMetricsTag${variant}`).innerHTML = `
-        <i class="ph-bold ph-sparkle text-amber-300"></i> ${tagText}
-      `;
-
-      showToast(`已成功辨識素材 ${variant} 的視覺吸引力數據`);
-
-      if (variant === 'A' && currentTestMode === 'copy_diff') {
-        syncImageAToB();
-      }
-
-      runAnalysis(false, false);
     }
 
     function clearImage(variant, notify = true) {
@@ -953,10 +858,6 @@
       if (wrapper) wrapper.classList.add('hidden');
       if (preview) preview.src = "";
       if (removeBtn) removeBtn.classList.add('hidden');
-
-      if (variant === 'A' && currentTestMode === 'copy_diff') {
-        clearImage('B', false);
-      }
 
       if (notify) showToast(`已移除素材 ${variant} 圖片`);
       runAnalysis(false, false);
@@ -984,7 +885,7 @@
       }, 2500);
     }
 
-    // Modal
+    // Modal 控制
     let confirmCallback = null;
     function openConfirmModal(title, desc, callback) {
       document.getElementById('confirmTitle').textContent = title;
@@ -1064,7 +965,7 @@
       if (!container) return;
 
       const filtered = filterQuery 
-        ? list.filter(x => (x.titleA + x.titleB + x.platform).toLowerCase().includes(filterQuery.toLowerCase()))
+        ? list.filter(x => ((x.titleA || '') + (x.titleB || '') + (x.platform || '')).toLowerCase().includes(filterQuery.toLowerCase()))
         : list;
 
       if (filtered.length === 0) {
@@ -1095,7 +996,7 @@
           </div>
 
           <div class="mt-3 pt-2.5 border-t border-[#e9e4dc] flex items-center justify-between text-xs font-semibold">
-            <span class="${item.winner === '文案 A' || item.winner === '版本 A' ? 'text-[#556975]' : 'text-[#846648]'}">
+            <span class="${item.winner.includes('A') ? 'text-[#556975]' : 'text-[#846648]'}">
               🏆 ${item.winner} 勝出 (${item.winRate}%)
             </span>
             <span class="text-[#435948] font-mono text-[11px] bg-[#e2ebe4] px-2 py-0.5 rounded-xs">
@@ -1144,13 +1045,23 @@
       const item = list.find(x => x.id === id);
       if (!item) return;
 
-      document.getElementById('titleA').value = item.titleA || "";
-      document.getElementById('bodyA').value = item.bodyA || "";
-      document.getElementById('ctaA').value = item.ctaA || "";
+      if (item.mode) {
+        setTestMode(item.mode);
+      }
 
-      document.getElementById('titleB').value = item.titleB || "";
-      document.getElementById('bodyB').value = item.bodyB || "";
-      document.getElementById('ctaB').value = item.ctaB || "";
+      if (item.mode === 'image_diff') {
+        document.getElementById('sharedTitle').value = item.titleA || "";
+        document.getElementById('sharedBody').value = item.bodyA || "";
+        document.getElementById('sharedCta').value = item.ctaA || "";
+      } else {
+        document.getElementById('titleA').value = item.titleA || "";
+        document.getElementById('bodyA').value = item.bodyA || "";
+        document.getElementById('ctaA').value = item.ctaA || "";
+
+        document.getElementById('titleB').value = item.titleB || "";
+        document.getElementById('bodyB').value = item.bodyB || "";
+        document.getElementById('ctaB').value = item.ctaB || "";
+      }
 
       document.getElementById('platformSelect').value = item.platformValue || "meta_feed";
       document.getElementById('audienceSelect').value = item.audienceValue || "young";
@@ -1171,6 +1082,12 @@
     function loadPreset(key) {
       const data = PRESETS[key];
       if (!data) return;
+
+      // 切換為文案模式
+      if (currentTestMode !== 'copy_diff') {
+        setTestMode('copy_diff');
+      }
+
       document.getElementById('titleA').value = data.titleA;
       document.getElementById('bodyA').value = data.bodyA;
       document.getElementById('ctaA').value = data.ctaA;
@@ -1185,13 +1102,9 @@
       const menu = document.getElementById('presetMenu');
       if (menu) menu.classList.add('hidden');
 
-      if (currentTestMode === 'image_diff') {
-        syncCopyAToB(false);
-      }
-
       updateCharCount();
       runAnalysis(true, true);
-      showToast("已成功載入行業範例文案");
+      showToast("已成功載入範例文案並完成高對比推算");
     }
 
     function clearAll(notify = true) {
@@ -1405,14 +1318,6 @@
     function runAnalysis(forceOpen = false, saveToRecord = false) {
       updateCharCount();
 
-      const titleA = document.getElementById('titleA').value.trim();
-      const bodyA = document.getElementById('bodyA').value.trim();
-      const ctaA = document.getElementById('ctaA').value.trim();
-
-      const titleB = document.getElementById('titleB').value.trim();
-      const bodyB = document.getElementById('bodyB').value.trim();
-      const ctaB = document.getElementById('ctaB').value.trim();
-
       const platformEl = document.getElementById('platformSelect');
       const audienceEl = document.getElementById('audienceSelect');
       const goalEl = document.getElementById('goalSelect');
@@ -1421,58 +1326,74 @@
       const audience = audienceEl.value;
       const goal = goalEl.value;
 
-      const hasImgA = !!imageMetrics.A;
-      const hasImgB = !!imageMetrics.B;
-
-      if (!titleA && !titleB && !bodyA && !bodyB && !hasImgA && !hasImgB) {
-        if (forceOpen) showToast("請先填入文案或上傳圖片進行比較！", false);
-        return;
-      }
-
-      const resA = scoreAdCopy(titleA, bodyA, ctaA, platform, audience, goal);
-      const resB = scoreAdCopy(titleB, bodyB, ctaB, platform, audience, goal);
-
       const taConfig = AUDIENCE_MODELS[audience] || AUDIENCE_MODELS.young;
       const platSpec = PLATFORM_SPECS[platform] || PLATFORM_SPECS.meta_feed;
 
-      let imgScoreA = hasImgA ? imageMetrics.A.visualScore : 0;
-      let imgScoreB = hasImgB ? imageMetrics.B.visualScore : 0;
+      let finalScoreA = 0;
+      let finalScoreB = 0;
+      let resA = { total: 0, dims: {}, notes: [] };
+      let resB = { total: 0, dims: {}, notes: [] };
 
-      if (hasImgA) {
-        if (imageMetrics.A.avgSaturation >= taConfig.imgPref.minSat) imgScoreA += 4;
-        if (imageMetrics.A.visualComplexity <= taConfig.imgPref.maxComplexity) imgScoreA += 3;
-        imgScoreA = Math.min(98, imgScoreA);
-      }
-      if (hasImgB) {
-        if (imageMetrics.B.avgSaturation >= taConfig.imgPref.minSat) imgScoreB += 4;
-        if (imageMetrics.B.visualComplexity <= taConfig.imgPref.maxComplexity) imgScoreB += 3;
-        imgScoreB = Math.min(98, imgScoreB);
-      }
+      let titleAVal = "";
+      let titleBVal = "";
+      let bodyAVal = "";
+      let bodyBVal = "";
+      let ctaAVal = "";
+      let ctaBVal = "";
 
-      let finalScoreA = resA.total;
-      let finalScoreB = resB.total;
+      if (currentTestMode === 'copy_diff') {
+        // ========== 模式 1：純文案測試 ==========
+        titleAVal = document.getElementById('titleA').value.trim();
+        bodyAVal = document.getElementById('bodyA').value.trim();
+        ctaAVal = document.getElementById('ctaA').value.trim();
 
-      const platImgW = platSpec.imgWeight;
-      const platCopyW = platSpec.copyWeight;
+        titleBVal = document.getElementById('titleB').value.trim();
+        bodyBVal = document.getElementById('bodyB').value.trim();
+        ctaBVal = document.getElementById('ctaB').value.trim();
 
-      if (platImgW === 0) {
+        if (!titleAVal && !titleBVal && !bodyAVal && !bodyBVal) {
+          if (forceOpen) showToast("請先填寫文案 A 與文案 B 進行測試！", false);
+          return;
+        }
+
+        resA = scoreAdCopy(titleAVal, bodyAVal, ctaAVal, platform, audience, goal);
+        resB = scoreAdCopy(titleBVal, bodyBVal, ctaBVal, platform, audience, goal);
+
         finalScoreA = resA.total;
         finalScoreB = resB.total;
-      } else if (hasImgA && hasImgB) {
-        finalScoreA = Math.round(resA.total * platCopyW + imgScoreA * platImgW);
-        finalScoreB = Math.round(resB.total * platCopyW + imgScoreB * platImgW);
-      } else if (hasImgA) {
-        finalScoreA = Math.round(resA.total * (1 - platImgW * 0.6) + imgScoreA * (platImgW * 0.6));
-      } else if (hasImgB) {
-        finalScoreB = Math.round(resB.total * (1 - platImgW * 0.6) + imgScoreB * (platImgW * 0.6));
+      } else {
+        // ========== 模式 2：純圖片素材測試 ==========
+        const hasImgA = !!imageMetrics.A;
+        const hasImgB = !!imageMetrics.B;
+
+        if (!hasImgA && !hasImgB) {
+          if (forceOpen) showToast("請先上傳圖片素材 A 與素材 B 進行測試！", false);
+          return;
+        }
+
+        titleAVal = "素材 A 視覺評估";
+        titleBVal = "素材 B 視覺評估";
+        bodyAVal = "純視覺焦點與吸睛度對比";
+        bodyBVal = "純視覺焦點與吸睛度對比";
+        ctaAVal = "瞭解更多";
+        ctaBVal = "瞭解更多";
+
+        let imgScoreA = hasImgA ? imageMetrics.A.visualScore : 50;
+        let imgScoreB = hasImgB ? imageMetrics.B.visualScore : 50;
+
+        if (hasImgA && imageMetrics.A.avgSaturation >= taConfig.imgPref.minSat) imgScoreA += 4;
+        if (hasImgB && imageMetrics.B.avgSaturation >= taConfig.imgPref.minSat) imgScoreB += 4;
+
+        finalScoreA = imgScoreA;
+        finalScoreB = imgScoreB;
       }
 
       if (goal === "purchase") {
-        finalScoreA = Math.round(finalScoreA * 0.9 + resA.dims.cta * 0.1);
-        finalScoreB = Math.round(finalScoreB * 0.9 + resB.dims.cta * 0.1);
+        finalScoreA = Math.round(finalScoreA * 0.9 + (resA.dims.cta || 50) * 0.1);
+        finalScoreB = Math.round(finalScoreB * 0.9 + (resB.dims.cta || 50) * 0.1);
       } else if (goal === "lead") {
-        finalScoreA = Math.round(finalScoreA * 0.9 + resA.dims.curiosity * 0.1);
-        finalScoreB = Math.round(finalScoreB * 0.9 + resB.dims.curiosity * 0.1);
+        finalScoreA = Math.round(finalScoreA * 0.9 + (resA.dims.curiosity || 50) * 0.1);
+        finalScoreB = Math.round(finalScoreB * 0.9 + (resB.dims.curiosity || 50) * 0.1);
       }
 
       document.getElementById('resultsCard').classList.remove('hidden');
@@ -1482,7 +1403,7 @@
       const isWinnerA = finalScoreA > finalScoreB;
       const isTie = diff <= 2;
 
-      // 使用指數勝率曲線：分數差距大時，勝率拉開至 75%~85% 以上
+      // 使用指數勝率曲線：分數差距大時拉開勝率
       const probabilityA = 1 / (1 + Math.exp(-(finalScoreA - finalScoreB) * 0.08));
       let winRateA = Math.round(probabilityA * 100);
       winRateA = Math.max(10, Math.min(90, winRateA));
@@ -1498,13 +1419,11 @@
       document.getElementById('scoreBadgeA').textContent = `${finalScoreA} 分`;
       document.getElementById('scoreBadgeB').textContent = `${finalScoreB} 分`;
 
+      // 圖片評估卡片：僅在圖片模式呈現
       const imgSection = document.getElementById('imageAnalysisSection');
-      if (platImgW === 0 && (hasImgA || hasImgB)) {
+      if (currentTestMode === 'image_diff' && (imageMetrics.A || imageMetrics.B)) {
         imgSection.classList.remove('hidden');
-        renderImageComparison(hasImgA, hasImgB, "Google 搜尋廣告以純文字呈現，素材圖片不影響點擊勝率推算。");
-      } else if (hasImgA || hasImgB) {
-        imgSection.classList.remove('hidden');
-        renderImageComparison(hasImgA, hasImgB);
+        renderImageComparison(!!imageMetrics.A, !!imageMetrics.B);
       } else {
         imgSection.classList.add('hidden');
       }
@@ -1519,21 +1438,21 @@
           <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#ede8e1] text-[#5a544e] rounded-md text-xs font-semibold mb-3">
             <i class="ph-bold ph-scales"></i> 兩組評分平手 (Tie)
           </div>
-          <h2 class="text-xl md:text-2xl font-bold text-[#2d2a27]">在【${platSpec.name}】上兩組素材預測效能相近 (A: ${winRateA}% vs B: ${winRateB}%)</h2>
+          <h2 class="text-xl md:text-2xl font-bold text-[#2d2a27]">在【${platSpec.name}】上兩組${currentTestMode === 'image_diff' ? '圖片素材' : '文案'}預測效能相近 (A: ${winRateA}% vs B: ${winRateB}%)</h2>
           <p class="text-[#706b65] text-sm mt-2 max-w-xl mx-auto">
-            ${currentTestMode === 'image_diff' ? '兩張圖片在色彩穿透力與焦點引導上勢均力敵，建議調整主體光影對比或增加留白。' : '兩組文案在吸睛力與行動阻力上勢均力敵，建議在首句加入更具體的情境數字或強烈問題反差。'}
+            ${currentTestMode === 'image_diff' ? '兩張圖片在色彩飽和度與焦點反差上勢均力敵，建議加強主體曝光或增加背景留白。' : '兩組文案在吸睛力與行動阻力上勢均力敵，建議在首句加入更具體的情境數字或強烈問題反差。'}
           </p>
         `;
       } else {
         const winnerTag = isWinnerA 
-          ? (currentTestMode === 'image_diff' ? "素材圖片 A" : "文案 A (對照組)")
-          : (currentTestMode === 'image_diff' ? "素材圖片 B" : "文案 B (實驗組)");
+          ? (currentTestMode === 'image_diff' ? "圖片素材 A (對照素材)" : "文案 A (對照組)")
+          : (currentTestMode === 'image_diff' ? "圖片素材 B (測試素材)" : "文案 B (實驗組)");
         winnerText = isWinnerA ? "版本 A" : "版本 B";
         winnerRate = isWinnerA ? winRateA : winRateB;
 
         const modeBadgeText = currentTestMode === 'copy_diff' 
-          ? "文案不同 · 圖片相同 (單變因測試)" 
-          : "圖片不同 · 文案相同 (單變因測試)";
+          ? "文案 A/B 測試模式" 
+          : "圖片素材 A/B 測試模式";
 
         winnerBanner.className = `p-6 md:p-7 rounded-md border ${isWinnerA ? 'border-[#cbd5dc] bg-[#f0f4f7]' : 'border-[#ded0c0] bg-[#f7f2eb]'}`;
         winnerBanner.innerHTML = `
@@ -1547,8 +1466,8 @@
               </h2>
               <p class="text-[#5a544e] text-sm mt-2 max-w-xl leading-relaxed">
                 ${currentTestMode === 'image_diff' 
-                  ? `在<strong>文案完全受控相同</strong>的前提下，<strong>${winnerTag}</strong> 的色彩飽和度、主體光影對比與小螢幕焦點辨識顯著更優，預估相對點擊增長：` 
-                  : `在<strong>圖片完全受控相同</strong>的前提下，<strong>${winnerTag}</strong> 展現了更低的認知摩擦力與更高的痛點呼喚力，預估相對 CTR 增長：`}
+                  ? `在<strong>廣告文案完全受控相同</strong>的前提下，<strong>${winnerTag}</strong> 的色彩飽和度、主體光影對比與小螢幕焦點辨識顯著更優，預估相對點擊增長：` 
+                  : `在<strong>主視覺素材完全受控一致</strong>的前提下，<strong>${winnerTag}</strong> 展現了更低的認知摩擦力與更高的痛點呼喚力，預估相對 CTR 增長：`}
                 <span class="text-[#435948] font-bold text-base bg-[#e2ebe4] px-2 py-0.5 rounded-md">+${estimatedCtrLift}% CTR</span>
               </p>
             </div>
@@ -1579,8 +1498,12 @@
         let valA = resA.dims[key] || 0;
         let valB = resB.dims[key] || 0;
 
-        if (key === 'hook' && hasImgA) valA = Math.round(valA * 0.7 + imageMetrics.A.visualScore * 0.3);
-        if (key === 'hook' && hasImgB) valB = Math.round(valB * 0.7 + imageMetrics.B.visualScore * 0.3);
+        if (currentTestMode === 'image_diff') {
+          if (key === 'hook') {
+            if (imageMetrics.A) valA = imageMetrics.A.visualScore;
+            if (imageMetrics.B) valB = imageMetrics.B.visualScore;
+          }
+        }
 
         return `
           <div class="bg-[#f4f1ea]/80 p-4 rounded-md border border-[#dcd6cd] space-y-2.5">
@@ -1592,7 +1515,7 @@
             <div class="grid grid-cols-2 gap-4 items-center pt-1">
               <div>
                 <div class="flex justify-between text-[11px] mb-1 font-semibold text-[#556975]">
-                  <span>文案 A</span>
+                  <span>${currentTestMode === 'image_diff' ? '素材 A' : '文案 A'}</span>
                   <span>${valA} 分</span>
                 </div>
                 <div class="w-full bg-[#ded9cf] rounded-xs h-2 overflow-hidden">
@@ -1601,7 +1524,7 @@
               </div>
               <div>
                 <div class="flex justify-between text-[11px] mb-1 font-semibold text-[#846648]">
-                  <span>文案 B</span>
+                  <span>${currentTestMode === 'image_diff' ? '素材 B' : '文案 B'}</span>
                   <span>${valB} 分</span>
                 </div>
                 <div class="w-full bg-[#ded9cf] rounded-xs h-2 overflow-hidden">
@@ -1613,15 +1536,11 @@
         `;
       }).join('');
 
-      // 建議列表
+      // 建議反饋
       const listA = document.getElementById('feedbackA');
       const notesA = [...resA.notes];
-      if (hasImgA) {
-        if (imageMetrics.A.visualScore >= 75) {
-          notesA.unshift(`【主視覺亮點】素材 A 色彩飽和與構圖對比優秀 (${imageMetrics.A.visualScore}分)。`);
-        } else {
-          notesA.push(`【視覺建議】素材 A 對比或飽和度偏低 (${imageMetrics.A.visualScore}分)。`);
-        }
+      if (currentTestMode === 'image_diff' && imageMetrics.A) {
+        notesA.unshift(`【主視覺數據】素材 A 評分 ${imageMetrics.A.visualScore}分，飽和度 ${imageMetrics.A.avgSaturation}%。`);
       }
       listA.innerHTML = (notesA.length ? notesA : ["表現持平，建議在首句加強生活化對比，減少官腔詞彙以降低受眾抗性。"]).map(n => `
         <li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-[#6b7f8c] text-sm mt-0.5 shrink-0"></i> <span>${n}</span></li>
@@ -1629,12 +1548,8 @@
 
       const listB = document.getElementById('feedbackB');
       const notesB = [...resB.notes];
-      if (hasImgB) {
-        if (imageMetrics.B.visualScore >= 75) {
-          notesB.unshift(`【主視覺亮點】素材 B 具備強烈吸引力 (${imageMetrics.B.visualScore}分)。`);
-        } else {
-          notesB.push(`【視覺建議】素材 B 畫面細節稍雜或留白不足 (${imageMetrics.B.visualScore}分)。`);
-        }
+      if (currentTestMode === 'image_diff' && imageMetrics.B) {
+        notesB.unshift(`【主視覺數據】素材 B 評分 ${imageMetrics.B.visualScore}分，飽和度 ${imageMetrics.B.avgSaturation}%。`);
       }
       listB.innerHTML = (notesB.length ? notesB : ["表現持平，建議在行動呼籲上提供更具體且低門檻的誘因以放大轉換。"]).map(n => `
         <li class="flex items-start gap-2"><i class="ph-fill ph-check-circle text-[#a8825c] text-sm mt-0.5 shrink-0"></i> <span>${n}</span></li>
@@ -1647,10 +1562,10 @@
         scoreA: finalScoreA,
         scoreB: finalScoreB,
         platformText: platformEl.options[platformEl.selectedIndex].text,
-        hasImages: hasImgA || hasImgB
+        testMode: currentTestMode
       };
 
-      if (saveToRecord && (titleA || titleB || hasImgA || hasImgB)) {
+      if (saveToRecord && (titleAVal || titleBVal || imageMetrics.A || imageMetrics.B)) {
         const historyRecord = {
           id: 'rec_' + Date.now(),
           date: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
@@ -1658,15 +1573,16 @@
           platformValue: platform,
           audienceValue: audience,
           goalValue: goal,
-          titleA: titleA,
-          bodyA: bodyA,
-          ctaA: ctaA,
-          titleB: titleB,
-          bodyB: bodyB,
-          ctaB: ctaB,
+          titleA: titleAVal,
+          bodyA: bodyAVal,
+          ctaA: ctaAVal,
+          titleB: titleBVal,
+          bodyB: bodyBVal,
+          ctaB: ctaBVal,
           winner: winnerText,
           winRate: winnerRate,
-          lift: estimatedCtrLift
+          lift: estimatedCtrLift,
+          mode: currentTestMode
         };
         saveHistoryItem(historyRecord);
         showToast("已完成推算並保存至歷史紀錄！");
@@ -1736,11 +1652,26 @@
       }
     }
 
+    // 即時手機樣機預覽控制
     function previewMockup(variant) {
       const isA = variant === 'A';
-      const title = document.getElementById(isA ? 'titleA' : 'titleB').value.trim() || (isA ? '文案 A 主標題' : '文案 B 主標題');
-      const body = document.getElementById(isA ? 'bodyA' : 'bodyB').value.trim() || '（尚未填寫正文內容，請於輸入框內鍵入文案）';
-      const cta = document.getElementById(isA ? 'ctaA' : 'ctaB').value.trim() || '瞭解詳情';
+      let title = "";
+      let body = "";
+      let cta = "";
+      let uploadedImg = null;
+
+      if (currentTestMode === 'copy_diff') {
+        title = document.getElementById(isA ? 'titleA' : 'titleB').value.trim() || (isA ? '文案 A 主標題' : '文案 B 主標題');
+        body = document.getElementById(isA ? 'bodyA' : 'bodyB').value.trim() || '（尚未填寫正文內容，請於輸入框內鍵入文案）';
+        cta = document.getElementById(isA ? 'ctaA' : 'ctaB').value.trim() || '瞭解詳情';
+        uploadedImg = null;
+      } else {
+        title = isA ? '廣告主視覺素材 A' : '廣告主視覺素材 B';
+        body = '（圖片素材模式預覽：專注檢視主體焦點與色彩在手機版位之表現）';
+        cta = '瞭解詳情';
+        uploadedImg = imageMetrics[variant];
+      }
+
       const platformSelect = document.getElementById('platformSelect');
       const platformText = platformSelect.options[platformSelect.selectedIndex].text;
 
@@ -1752,10 +1683,9 @@
 
       const realImg = document.getElementById('mockupRealImage');
       const placeholder = document.getElementById('mockupImagePlaceholder');
-      const uploaded = imageMetrics[variant];
 
-      if (uploaded && uploaded.dataUrl) {
-        realImg.src = uploaded.dataUrl;
+      if (uploadedImg && uploadedImg.dataUrl) {
+        realImg.src = uploadedImg.dataUrl;
         realImg.classList.remove('hidden');
         placeholder.classList.add('hidden');
       } else {
@@ -1780,26 +1710,30 @@
       modal.classList.remove('flex');
     }
 
+    // 複製診斷報告摘要
     function copyComparisonSummary() {
       if (!lastAnalysisReport) {
         showToast("尚未產生分析報告", false);
         return;
       }
 
-      const titleA = document.getElementById('titleA').value.trim() || '未命名文案 A';
-      const titleB = document.getElementById('titleB').value.trim() || '未命名文案 B';
       const taSelect = document.getElementById('audienceSelect');
       const taText = taSelect.options[taSelect.selectedIndex].text;
+      const isCopyMode = lastAnalysisReport.testMode === 'copy_diff';
+
+      let itemAName = isCopyMode ? (document.getElementById('titleA').value.trim() || '未命名文案 A') : '素材圖片 A';
+      let itemBName = isCopyMode ? (document.getElementById('titleB').value.trim() || '未命名文案 B') : '素材圖片 B';
 
       const summaryText = `【廣告 A/B 測試預測診斷摘要】
+• 測試模式：${isCopyMode ? '純文案測試模式' : '純圖片素材測試模式'}
 • 投放平台：${lastAnalysisReport.platformText}
-• 目標受眾：${taText}
-• 對照組 A (${lastAnalysisReport.scoreA}分)：${titleA}
-• 實驗組 B (${lastAnalysisReport.scoreB}分)：${titleB}
+• 目產受眾：${taText}
+• 對照組 A (${lastAnalysisReport.scoreA}分)：${itemAName}
+• 實驗組 B (${lastAnalysisReport.scoreB}分)：${itemBName}
 -----------------------------
 🏆 推薦版本：${lastAnalysisReport.winner} (預估勝率 ${lastAnalysisReport.winRate}%)
 📈 預估 CTR 增長：+${lastAnalysisReport.lift}%
-💡 結論：依據演算法與受眾心智模型，${lastAnalysisReport.winner} 在受眾指尖停頓與行動觸發上相對佔優。`;
+💡 結論：依據演算法與受眾心智模型，${lastAnalysisReport.winner} 具備更高的指尖停頓吸睛力與行動觸發效率。`;
 
       const textarea = document.createElement("textarea");
       textarea.value = summaryText;
@@ -1821,14 +1755,6 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      const elTitleA = document.getElementById('titleA');
-      const elBodyA = document.getElementById('bodyA');
-      const elCtaA = document.getElementById('ctaA');
-
-      if (elTitleA) elTitleA.addEventListener('input', onCopyAInput);
-      if (elBodyA) elBodyA.addEventListener('input', onCopyAInput);
-      if (elCtaA) elCtaA.addEventListener('input', onCopyAInput);
-
       setTestMode('copy_diff');
       updateHistoryUI();
       updateCharCount();
