@@ -1463,7 +1463,7 @@
 
       if (isImgMode) {
         if (dimTitleEl) dimTitleEl.innerHTML = `<i class="ph-bold ph-scales text-[#a8825c]"></i> 六大視覺心智維度：享樂型 vs 實用型評分比對`;
-        if (dimSubEl) dimSubEl.textContent = `評估圖片偏向「情緒沉浸／多巴胺誘惑（享樂型）」或「結構清晰／細節信任（實用型）」的傳播穿透力`;
+        if (dimSubEl) dimSubEl.textContent = `評估圖片偏向「情緒沉浸／多巴胺（享樂型）」或「結構清晰／細節信任（實用型）」的傳播穿透力`;
         if (legendAEl) legendAEl.textContent = "素材 A";
         if (legendBEl) legendBEl.textContent = "素材 B";
 
@@ -1492,7 +1492,7 @@
           },
           sensoryReward: { 
             name: "【享樂型】感官犒賞聯想 (Sensory Gratification)", 
-            desc: "畫面是否能讓人直觀模擬「躺上去、吃一口、陷進去」的感官舒適體驗",
+            desc: "畫面是否能讓人直觀模擬到感官舒適的體驗",
             valA: calcSensoryReward(imageMetrics.A),
             valB: calcSensoryReward(imageMetrics.B)
           },
